@@ -20,6 +20,11 @@
 
 </script>
 <style>
+  /* Módulos desactivados */
+  body.nomod-cuidado .summary, body.nomod-cuidado #addCareBlockFab, body.nomod-cuidado #addCareFromDayBtn,
+  body.nomod-cuidado #checkOverlapsBtn, body.nomod-cuidado #todayBanner{display:none !important;}
+  body.nomod-pendientes #tileTodos, body.nomod-docs #tileDocs, body.nomod-clinica #tileClinica,
+  body.nomod-informes #exportPdfBtn, body.nomod-sync #exportIcsBtn, body.nomod-sync #gcalImportBtn{display:none !important;}
   :root{
     --mama:#e0578c;
     --papa:#3b7ddb;
@@ -520,7 +525,9 @@
   </div>
   <div id="moreOptionsMenu" style="display:none;background:var(--card);border:1px solid var(--line);border-radius:10px;margin:-4px 0 12px;overflow:hidden;">
     <button class="menu-item" id="exportPdfBtn">⬇️ Exportar PDF</button>
-    <button class="menu-item" id="exportIcsBtn">📆 Exportar .ics</button>
+    <button class="menu-item" id="exportIcsBtn">📆 Vincular calendario: descargar .ics</button>
+    <button class="menu-item" id="gcalImportBtn">🗓️ Abrir importación de Google Calendar</button>
+    <button class="menu-item" id="modulosBtn">🧩 Módulos</button>
     <button class="menu-item" id="backupTodoBtn">💾 Respaldo de todos (descargar)</button>
     <button class="menu-item" id="exportProposalBtn">💾 Exportar solo este hijo/a</button>
     <button class="menu-item" id="importProposalBtn">📥 Importar en este hijo/a</button>
@@ -945,6 +952,23 @@ function nuevoIdHijo(nombre){
   let id = base, n = 2;
   while(STORE.hijos.some(h=>h.id===id)){ id = base + '-' + (n++); }
   return id;
+}
+// ---------- Módulos activables ----------
+const MODULOS = [
+  {k:'cuidado',    ico:'🏠', nm:'Bloques de cuidado', ds:'Horas por cuidador, cobertura y superposiciones'},
+  {k:'pendientes', ico:'✅', nm:'Pendientes',         ds:'Lista de tareas con fecha'},
+  {k:'docs',       ico:'📄', nm:'Documentos',         ds:'Enlaces a documentación importante'},
+  {k:'clinica',    ico:'🩺', nm:'Historia clínica',   ds:'Enlaces y notas de salud'},
+  {k:'informes',   ico:'📑', nm:'Informes PDF',       ds:'Exportar resúmenes en PDF'},
+  {k:'sync',       ico:'🔗', nm:'Vincular calendario',ds:'Exportar .ics para Google Calendar, Apple o Outlook'}
+];
+function modulosDe(h){
+  const d = {}; MODULOS.forEach(m=>d[m.k]=true);
+  return Object.assign(d, h && h.modulos ? h.modulos : {});
+}
+function aplicarModulos(h){
+  const m = modulosDe(h);
+  MODULOS.forEach(x=>document.body.classList.toggle('nomod-'+x.k, !m[x.k]));
 }
 const PLANTILLAS_INICIALES = [
   {id:'t1', title:'Colegio', start:'08:00', end:'12:00'},
@@ -2218,6 +2242,11 @@ function openExportRangeModal(type){
 }
 
 document.getElementById('exportPdfBtn').addEventListener('click', ()=>openExportRangeModal('pdf'));
+document.getElementById('modulosBtn').addEventListener('click', ()=>mostrarModulos(hijoActual(), false));
+document.getElementById('gcalImportBtn').addEventListener('click', ()=>{
+  alert('Primero descargá el .ics con "Vincular calendario". Después, en la pantalla de Google Calendar que se abre, elegí "Importar", seleccioná el archivo y el calendario destino.');
+  window.open('https://calendar.google.com/calendar/u/0/r/settings/export', '_blank');
+});
 document.getElementById('exportIcsBtn').addEventListener('click', ()=>openExportRangeModal('ics'));
 
 document.getElementById('cancelExportRangeBtn').addEventListener('click', ()=>{
@@ -2662,7 +2691,7 @@ function esRespaldoValido(d){ return d && d.tipo==='gurises_respaldo_v3' && Arra
 function normalizarHijo(h){
   return { id:String(h.id||''), nombre:String(h.nombre||'Hijo/a'), emoji:h.emoji||'🧒',
     events:h.events||[], careBlocks:h.careBlocks||[], templates:h.templates||JSON.parse(JSON.stringify(PLANTILLAS_INICIALES)),
-    todos:h.todos||[], links:h.links||[], updatedAt:h.updatedAt||Date.now() };
+    todos:h.todos||[], links:h.links||[], modulos:h.modulos, updatedAt:h.updatedAt||Date.now() };
 }
 // Lee un archivo de respaldo. Acepta el respaldo completo (v3) y el de un solo hijo de la versión anterior.
 function restaurarDesdeArchivo(file, alTerminar){
@@ -2734,9 +2763,32 @@ function mostrarAlta(primera){
     const nombre = document.getElementById('altaNombre').value.trim();
     if(!nombre){ document.getElementById('altaNombre').focus(); return; }
     const h = crearHijo(nombre, emoji);
-    window.location.href = window.location.pathname + '?fam=' + encodeURIComponent(h.id);
+    mostrarModulos(h, true);
   });
   conectarRestaurar();
+}
+function mostrarModulos(h, primera){
+  const act = modulosDe(h);
+  pantallaBase(`
+    <h1 style="margin:0 0 6px;font-size:1.4rem;">¿Qué querés usar?</h1>
+    <p style="color:#8a8a8a;margin:0 0 20px;">${primera ? 'El calendario siempre está. Activá solo lo que necesites; lo podés cambiar después desde Más → Módulos.' : 'Activá o desactivá módulos. No se borra nada.'}</p>
+    <div style="display:grid;gap:10px;text-align:left;">
+      ${MODULOS.map(m=>`<label style="display:flex;gap:12px;align-items:center;padding:14px;border:1px solid #e6e3dc;border-radius:14px;background:#fff;cursor:pointer;">
+        <input type="checkbox" data-k="${m.k}" ${act[m.k]?'checked':''} style="width:22px;height:22px;flex:none;">
+        <span style="font-size:1.6rem;">${m.ico}</span>
+        <span><b>${m.nm}</b><br><span style="color:#8a8a8a;font-size:.82rem;">${m.ds}</span></span>
+      </label>`).join('')}
+    </div>
+    <p id="modAvisoSync" style="display:none;color:#8a8a8a;font-size:.82rem;margin:14px 0 0;">Con "Vincular calendario" vas a poder bajar un archivo .ics e importarlo en tu calendario. No es una sincronización en vivo.</p>
+    <button id="modOk" style="${BTN_PRIM};margin-top:20px;">${primera ? 'Empezar' : 'Guardar'}</button>`);
+  const aviso = ()=>{ document.getElementById('modAvisoSync').style.display = document.querySelector('[data-k=sync]').checked ? 'block' : 'none'; };
+  document.querySelector('[data-k=sync]').addEventListener('change', aviso); aviso();
+  document.getElementById('modOk').addEventListener('click', ()=>{
+    h.modulos = {};
+    document.querySelectorAll('[data-k]').forEach(c=>{ h.modulos[c.dataset.k] = c.checked; });
+    guardarStore();
+    window.location.href = window.location.pathname + '?fam=' + encodeURIComponent(h.id);
+  });
 }
 function mostrarSelectorHijos(){
   pantallaBase(`
@@ -2794,6 +2846,7 @@ function iniciarApp(){
     }
   }
   const h = hijoActual();
+  if(!h.modulos){ mostrarModulos(h, true); return; }
   events = h.events || []; careBlocks = h.careBlocks || [];
   templates = (h.templates && h.templates.length) ? h.templates : templates;
   todos = h.todos || []; links = h.links || [];
@@ -2802,6 +2855,7 @@ function iniciarApp(){
   const cambiarBtn = document.getElementById('cambiarHijoBtn');
   if(cambiarBtn) cambiarBtn.addEventListener('click', ()=>{ window.location.href = window.location.pathname + '?sel=1'; });
   document.body.classList.remove('read-only-mode');
+  aplicarModulos(h);
   refreshAll();
   avisarBackupSiHaceFalta();
 }
