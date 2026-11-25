@@ -5,8 +5,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>Gurises</title>
 
-<link rel="icon" href="icons/icon-192.png?v=5">
-<link rel="apple-touch-icon" href="icons/icon-192.png?v=5">
+<link rel="icon" href="icons/icon-192.png?v=6">
+<link rel="apple-touch-icon" href="icons/icon-192.png?v=6">
 <meta name="theme-color" content="#3b82f6">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -29,6 +29,16 @@
   body.nomod-informes #exportPdfBtn, body.nomod-sync #exportIcsBtn, body.nomod-sync #gcalImportBtn{display:none !important;}
   button,input,textarea,select{font-family:inherit;}
   #tileConfig{background:#e0e7ff !important;}
+  #ayudaView,#legalView{display:none;position:fixed;inset:0;background:var(--bg);z-index:45;overflow-y:auto;}
+  #ayudaView.open,#legalView.open{display:block;}
+  .cfg-card details{border-top:1px solid var(--line);padding:10px 0;}
+  .cfg-card details:first-of-type{border-top:0;}
+  .cfg-card summary{font-weight:700;cursor:pointer;color:var(--ink);list-style:none;}
+  .cfg-card summary::before{content:'▸ ';color:var(--accent);}
+  .cfg-card details[open] summary::before{content:'▾ ';}
+  .cfg-card details p,.cfg-card details li{font-size:.88rem;color:var(--ink);line-height:1.45;}
+  .cfg-card details ol,.cfg-card details ul{margin:6px 0 6px 18px;padding:0;}
+  .legal-body h3{margin:14px 0 4px;font-size:.95rem;color:#1e40af;} .legal-body p{margin:0 0 8px;font-size:.88rem;line-height:1.5;color:var(--ink);}
   #configView{display:none;position:fixed;inset:0;background:var(--bg);z-index:40;overflow-y:auto;}
   #configView.open{display:block;}
   .cfg-top{position:sticky;top:0;background:var(--accent);color:#fff;display:flex;align-items:center;gap:10px;padding:14px 16px;}
@@ -511,7 +521,7 @@
 
 <header>
   <button class="panel-btn" id="openHomeBtn">☰ Panel</button>
-  <h1><img src="icons/icon-192.png?v=5" alt="" style="width:28px;height:28px;vertical-align:-6px;border-radius:6px;margin-right:6px;"> <span class="hijo-nombre">Gurises</span></h1>
+  <h1><img src="icons/icon-192.png?v=6" alt="" style="width:28px;height:28px;vertical-align:-6px;border-radius:6px;margin-right:6px;"> <span class="hijo-nombre">Gurises</span></h1>
   <div class="month-nav">
     <button id="prevMonth">‹</button>
     <div class="month-label" id="monthLabel"></div>
@@ -549,6 +559,7 @@
   <div class="toolbar" style="margin-top:-4px;">
     <button id="toggleActivitiesBtn">👁️ Ocultar actividades</button>
     <button id="manageTemplatesBtn">⚙️ Plantillas</button>
+    <button id="ayudaBtn">❓ Ayuda</button>
   </div>
   <div id="moreOptionsMenu" style="display:none;background:var(--card);border:1px solid var(--line);border-radius:10px;margin:-4px 0 12px;overflow:hidden;">
     <button class="menu-item" id="exportPdfBtn">⬇️ Exportar PDF</button>
@@ -840,7 +851,7 @@
 
 <!-- Pantalla: Panel principal -->
 <div id="homeView" class="open">
-  <div class="home-top"><h1><img src="icons/icon-192.png?v=5" alt=""> <span class="hijo-nombre">Gurises</span></h1><button id="cambiarHijoBtn" style="margin-top:6px;font-size:.75rem;padding:4px 12px;border-radius:14px;border:1px solid #ccc;background:#fff;color:#555;">⇄ Cambiar de hijo</button></div>
+  <div class="home-top"><h1><img src="icons/icon-192.png?v=6" alt=""> <span class="hijo-nombre">Gurises</span></h1><button id="cambiarHijoBtn" style="margin-top:6px;font-size:.75rem;padding:4px 12px;border-radius:14px;border:1px solid #ccc;background:#fff;color:#555;">⇄ Cambiar de hijo</button></div>
   <div class="home-body">
     <div class="home-lock">👀 Modo solo lectura <button id="homeUnlockBtn">🔒 Editar</button></div>
     <div class="home-intro" id="homeIntro"><button id="homeIntroX" aria-label="Ocultar">✕</button>
@@ -862,11 +873,46 @@
   </div>
 </div>
 
+<div id="ayudaView">
+  <div class="cfg-top"><button id="ayudaBack">‹ Volver</button><h1>❓ Ayuda del calendario</h1></div>
+  <div class="cfg-body">
+    <div class="cfg-card"><p>Tocá cada tema para ver cómo funciona. Lo más importante: hay <b>dos cosas distintas</b>, las <b>actividades</b> y los <b>bloques de cuidado</b>.</p>
+      <details open><summary>📌 Actividad</summary>
+        <p>Es algo que pasa en un horario: colegio, una terapia, un turno médico, un cumpleaños. Tiene título, fecha, hora de inicio y de fin, y notas opcionales.</p>
+        <ul><li>Puede abarcar varios días (por ejemplo, un fin de semana).</li><li>Puede repetirse (cada semana o cada 2 semanas, hasta la fecha que elijas).</li><li><b>No suma horas de cuidado</b>: solo informa qué hay ese día.</li><li>Con “Ocultar actividades” limpiás la vista para ver solo los cuidados.</li></ul>
+        <p>Para crear una: tocá un día y elegí agregar actividad.</p></details>
+      <details><summary>⚙️ Plantillas</summary>
+        <p>Son actividades que repetís seguido (Colegio, Terapia…). Al crear una actividad podés elegir una plantilla rápida y se completa sola. Las administrás en “⚙️ Plantillas”.</p></details>
+      <details><summary>🏠 Bloque de cuidado</summary>
+        <p>Es el período en que <b>un adulto (Mamá o Papá) está a cargo</b> del chico: desde una fecha y hora hasta otra fecha y hora. Puede cruzar la medianoche o durar varios días.</p>
+        <ul><li>Pinta el fondo del día con el color de quien cuida.</li><li><b>Suma las horas</b> de cada uno en los cuadros de “Esta semana” y “Este mes”.</li><li>También se puede repetir (semanal o cada 2 semanas).</li></ul>
+        <p>Para crear uno: botón 🏠 o desde el detalle del día.</p></details>
+      <details><summary>⚠️ Superposición</summary>
+        <p>Ocurre cuando dos bloques de cuidado <b>se pisan en el tiempo</b> (por ejemplo, un bloque cargado dos veces, o dos adultos a cargo a la misma hora). Las horas se desajustan y aparece un aviso rojo de “Exceso” debajo del mes.</p>
+        <p>Para arreglarlo: <b>Más → Verificar superposiciones</b>. Ves cada par con cuánto se pisan y podés <b>recortar</b> uno o <b>eliminar</b> uno.</p></details>
+      <details><summary>📅 Cobertura</summary>
+        <p>Debajo del mes aparece un resumen: “días sin cobertura” si hay días sin ningún bloque, o un ✅ si todo está coherente. Un día sin bloque no siempre es un error; es solo un aviso para que lo revises.</p></details>
+      <details><summary>📋 Copiar</summary>
+        <p>Sirve para <b>duplicar</b> un día, una semana o un mes (bloques y actividades) en otra fecha, sin cargar todo de nuevo.</p>
+        <ol><li>Tocá “📋 Copiar”.</li><li>Elegí el origen: día, semana o mes.</li><li>Tocá en el calendario lo que querés copiar.</li><li>Tocá el destino: un día, un día de la semana de llegada, o cualquier día del mes de llegada.</li><li>Confirmá.</li></ol>
+        <p><b>Ojo:</b> lo copiado se <b>agrega sin reemplazar</b> lo que ya había. Si el destino ya tenía bloques, pueden quedar superpuestos: revisalo con “Verificar superposiciones”.</p></details>
+      <details><summary>🗑️ Borrar</summary>
+        <p>En “Más” podés borrar el mes actual o un rango de fechas. Pide dos confirmaciones y no se puede deshacer: hacé un respaldo antes (Configuración → Respaldos).</p></details>
+      <details><summary>📄 Informes y calendario</summary>
+        <p><b>Exportar PDF</b> arma un informe con los tramos y las horas de cada uno. <b>Vincular calendario</b> descarga un archivo .ics para importarlo en Google Calendar, Apple u Outlook (no se sincroniza solo).</p></details>
+    </div>
+  </div>
+</div>
+
 <div id="configView">
   <div class="cfg-top"><button id="cfgBack">‹ Volver</button><h1>⚙️ Configuración</h1></div>
   <div class="cfg-body">
     <div class="cfg-card"><h2>🧩 Módulos</h2><p>Elegí qué partes de la app querés ver para este hijo/a. No se borra nada al apagar un módulo.</p>
       <button class="cfg-btn" id="cfgModulos">Elegir módulos</button></div>
+    <div class="cfg-card"><h2>❓ Ayuda y legales</h2><p>Cómo usar el calendario y cómo cuidamos tus datos.</p>
+      <button class="cfg-btn" id="cfgAyuda">Ayuda del calendario</button>
+      <button class="cfg-btn" id="cfgTerms">Términos y condiciones</button>
+      <button class="cfg-btn" id="cfgPriv">Política de privacidad</button></div>
     <div class="cfg-card"><h2>💾 Respaldos</h2><p id="cfgBackupInfo"></p>
       <button class="cfg-btn" id="cfgBackupAll">Descargar respaldo de todos</button>
       <button class="cfg-btn" id="cfgRestore">Restaurar respaldo</button>
@@ -2285,7 +2331,7 @@ function generatePdf(rangeStart, rangeEnd){
   doc.setTextColor(130,130,130);
   const nota = doc.splitTextToSize(
     'Este informe se generó automáticamente a partir de los registros cargados en la aplicación ' +
-    '"Cuidados" por los progenitores. Cada tramo indica el horario exacto de inicio y fin del ' +
+    '"Gurises" por los progenitores. Cada tramo indica el horario exacto de inicio y fin del ' +
     'cuidado a cargo de cada parte. Las horas totales se calculan sumando el tiempo efectivo de ' +
     'cuidado de cada progenitor, sin superposición ni doble conteo entre bloques.',
     pageWidth - 28
@@ -2817,6 +2863,7 @@ function mostrarAlta(primera){
     <div id="altaEmojis" style="display:flex;flex-wrap:wrap;gap:8px;justify-content:center;margin-bottom:18px;">
       ${EMOJIS_HIJO.map((e,i)=>`<button type="button" data-e="${e}" style="font-size:1.6rem;width:48px;height:48px;border-radius:12px;border:2px solid ${i===0?'#3b82f6':'#e2e8f0'};background:#fff;cursor:pointer;">${e}</button>`).join('')}
     </div>
+    <p style="font-size:.78rem;color:#64748b;margin:0 0 12px;">Al empezar confirmás que sos mayor de 18 años y aceptás los <a href="#" id="lgT">términos</a> y la <a href="#" id="lgP">política de privacidad</a>.</p>
     <button id="altaOk" style="${BTN_PRIM}">Empezar</button>
     ${!primera ? `<a href="?sel=1" style="${BTN_SEC};margin-top:10px;">Cancelar</a>` : ''}
     ${primera ? bloqueRestaurar() : ''}`);
@@ -2831,6 +2878,8 @@ function mostrarAlta(primera){
     const h = crearHijo(nombre, emoji);
     mostrarModulos(h, true);
   });
+  document.getElementById('lgT').addEventListener('click', e=>{ e.preventDefault(); abrirLegal('terms'); });
+  document.getElementById('lgP').addEventListener('click', e=>{ e.preventDefault(); abrirLegal('privacy'); });
   conectarRestaurar();
 }
 function mostrarModulos(h, primera){
@@ -2928,12 +2977,55 @@ function iniciarApp(){
   avisarBackupSiHaceFalta();
 }
 
+// ---------- Textos legales ----------
+const LG_VERSION = '2026-11-25';
+const LG = {
+ terms: ['Términos y condiciones',
+ '<h3>1. Qué es Gurises</h3><p>Gurises es una aplicación gratuita para organizar el cuidado de los chicos: calendario, bloques de cuidado, pendientes y enlaces a documentos. Funciona en tu dispositivo y no requiere cuenta.</p>'+
+ '<h3>2. No es asesoramiento médico ni legal</h3><p>Es una herramienta de organización. <b>No brinda diagnóstico, tratamiento ni asesoramiento médico o legal.</b> Los informes y el cómputo de horas son un registro de lo que vos cargás: no constituyen por sí mismos prueba ni reemplazan el asesoramiento de un/a profesional. Si los vas a usar en un trámite, consultá antes con un/a abogado/a.</p>'+
+ '<h3>3. Quiénes pueden usarla</h3><p>Gurises es para personas <b>mayores de 18 años</b>. Si cargás datos de menores a tu cargo, lo hacés como adulto responsable.</p>'+
+ '<h3>4. Tus datos y tu responsabilidad</h3><p>Todo lo que cargás se guarda <b>solo en tu dispositivo</b>. El desarrollador no tiene copia ni acceso. Por eso sos responsable de hacer respaldos (Configuración → Respaldos). Si borrás los datos del navegador, cambiás de dispositivo o el sistema limpia el almacenamiento, podés perder tu información si no tenés un respaldo.</p>'+
+ '<h3>5. Lo que compartís</h3><p>Los PDF, los archivos .ics y los respaldos que descargues son archivos <b>sin cifrar</b> que pueden contener datos sensibles. Lo que hagas con ellos (enviarlos, subirlos a un calendario, guardarlos en la nube) es decisión y responsabilidad tuya.</p>'+
+ '<h3>6. Documentos</h3><p>La sección de documentos guarda <b>solo enlaces</b> a archivos que están en otros servicios (Drive, Dropbox, tu obra social, etc.). Gurises no almacena los archivos ni su contenido. La seguridad de esos archivos depende del servicio donde están y de los permisos que les des.</p>'+
+ '<h3>7. Otras apps</h3><p>Los accesos a Nappy, Mangiamo y Ecos abren aplicaciones independientes, con sus propios datos, términos y política de privacidad. Gurises no les envía información.</p>'+
+ '<h3>8. Uso gratuito y aportes voluntarios</h3><p>Gurises es gratuita y sin publicidad. Los aportes (Mercado Pago, Cafecito, PayPal, Buy Me a Coffee) son <b>voluntarios</b>, no son el pago de un servicio y no otorgan ventajas ni derechos. Esos servicios son de terceros y se rigen por sus propias condiciones.</p>'+
+ '<h3>9. Sin garantías</h3><p>Se ofrece “tal cual”, sin garantía de disponibilidad ni de resultados. En la máxima medida que permita la ley, el desarrollador no responde por errores en los registros o cálculos, por decisiones tomadas a partir de ellos ni por la pérdida de datos. Esto no limita los derechos que la ley te reconoce como consumidor/a y que no pueden renunciarse.</p>'+
+ '<h3>10. Cambios y ley aplicable</h3><p>Estos términos pueden actualizarse; la versión vigente (<b>'+LG_VERSION+'</b>) figura en la app. Se rigen por las leyes de la República Argentina.</p>'],
+ privacy: ['Política de privacidad',
+ '<h3>Resumen</h3><p><b>Tus datos viven en tu dispositivo. No hay cuentas, servidor ni base de datos del desarrollador.</b> No recibimos ni vemos lo que cargás.</p>'+
+ '<h3>1. Qué datos usa Gurises</h3><p>Nombres o apodos de tus hijos, actividades y terapias, horarios de cuidado de cada adulto, pendientes, y los títulos, notas y enlaces que agregues. Según lo que cargues, esa información puede permitir deducir datos de salud (por ejemplo, una terapia). La ley argentina los considera <b>datos sensibles</b>.</p>'+
+ '<h3>2. Dónde se guardan</h3><p>En el almacenamiento del navegador de tu dispositivo. <b>No están cifrados</b>: cualquiera que use tu dispositivo desbloqueado, o que acceda al perfil del navegador, podría verlos. Protegé tu celular con bloqueo de pantalla y no compartas el dispositivo si hay datos sensibles.</p>'+
+ '<h3>3. Documentos y notas</h3><p>La app guarda solo <b>enlaces</b> a tus documentos, no los archivos. Te recomendamos no escribir datos clínicos, DNI ni otros datos sensibles en los títulos o en las notas.</p>'+
+ '<h3>4. Qué no hacemos</h3><p>No usamos publicidad, analítica ni rastreo, no vendemos ni cedemos datos y no pedimos registro.</p>'+
+ '<h3>5. Respaldos, PDF y calendario</h3><p>Los respaldos, los PDF y los .ics son archivos sin cifrar que descargás vos y que el desarrollador no recibe. Si importás un .ics en Google Calendar u otro servicio, esa información pasa a ese servicio y a su política de privacidad.</p>'+
+ '<h3>6. Alojamiento y terceros</h3><p>La app se descarga desde GitHub Pages, que puede registrar datos técnicos de la visita (como la dirección IP). Para mostrarse, carga la tipografía desde Google Fonts y la librería de PDF desde cdnjs (Cloudflare), que también pueden registrar datos técnicos de la visita. Los enlaces de aportes y de otras apps llevan a sitios de terceros con sus propias políticas.</p>'+
+ '<h3>7. Tus derechos</h3><p>Como los datos están solo en tu dispositivo, los controlás vos: podés verlos, corregirlos y borrarlos desde la app (eliminar un hijo/a) o borrando los datos del sitio en tu navegador. La Ley 25.326 de Protección de Datos Personales te reconoce derechos de acceso, rectificación y supresión; su órgano de control es la Agencia de Acceso a la Información Pública.</p>'+
+ '<h3>8. Menores</h3><p>Gurises es para mayores de 18 años. Quien cargue datos de menores a su cargo lo hace como adulto responsable.</p>'+
+ '<h3>9. Cambios</h3><p>Si esta política cambia, se actualiza la fecha (<b>'+LG_VERSION+'</b>) y, si corresponde, te avisamos en la app.</p>']
+};
+function abrirLegal(k){
+  let v = document.getElementById('legalView');
+  if(!v){
+    v = document.createElement('div'); v.id = 'legalView';
+    v.innerHTML = '<div class="cfg-top"><button id="legalBack">‹ Volver</button><h1 id="legalTitle"></h1></div><div class="cfg-body"><div class="cfg-card legal-body" id="legalBody"></div></div>';
+    document.body.appendChild(v);
+    document.getElementById('legalBack').addEventListener('click', ()=>v.classList.remove('open'));
+  }
+  document.getElementById('legalTitle').textContent = LG[k][0];
+  document.getElementById('legalBody').innerHTML = LG[k][1];
+  v.classList.add('open');
+}
 // ---------- Configuración ----------
 function abrirConfig(){
   const u = STORE.meta.ultimoBackup;
   document.getElementById('cfgBackupInfo').textContent = 'Tus datos están solo en este celular. ' + (u ? 'Último respaldo: ' + new Date(u).toLocaleDateString('es-AR') + '.' : 'Todavía no hiciste ningún respaldo.');
   document.getElementById('configView').classList.add('open');
 }
+document.getElementById('ayudaBtn').addEventListener('click', ()=>document.getElementById('ayudaView').classList.add('open'));
+document.getElementById('ayudaBack').addEventListener('click', ()=>document.getElementById('ayudaView').classList.remove('open'));
+document.getElementById('cfgAyuda').addEventListener('click', ()=>document.getElementById('ayudaView').classList.add('open'));
+document.getElementById('cfgTerms').addEventListener('click', ()=>abrirLegal('terms'));
+document.getElementById('cfgPriv').addEventListener('click', ()=>abrirLegal('privacy'));
 document.getElementById('tileConfig').addEventListener('click', abrirConfig);
 document.getElementById('cfgBack').addEventListener('click', ()=>document.getElementById('configView').classList.remove('open'));
 document.getElementById('cfgModulos').addEventListener('click', ()=>mostrarModulos(hijoActual(), false));
@@ -3103,8 +3195,8 @@ document.getElementById('tileClinica').addEventListener('click', ()=>openLinksVi
 
 // ---------- Enlaces (Documentos / Historia clínica) ----------
 const LINK_SECTIONS = {
-  docs:    { title:'📄 Documentos', notice:'' },
-  clinica: { title:'🩺 Historia clínica', notice:'Guardá acá solo enlaces a los archivos (Drive, portal de la obra social, etc.), no datos clínicos. Cualquiera que tenga el link de la app ve esta lista, así que los archivos tienen que estar con acceso restringido, no como "cualquiera con el enlace".' }
+  docs:    { title:'📄 Documentos', notice:'Acá solo se guardan enlaces a tus documentos (Drive, Dropbox, tu obra social, etc.). Gurises no guarda ni sube los archivos ni su contenido. Los archivos siguen en su servicio: dales acceso restringido, no “cualquiera con el enlace”. No escribas datos sensibles (diagnósticos, DNI) en el título ni en la nota.' },
+  clinica: { title:'🩺 Historia clínica', notice:'Acá solo se guardan enlaces a los archivos (Drive, portal de la obra social, etc.), no datos clínicos ni los archivos. Los enlaces quedan solo en este celular, pero quien tenga el link puede abrir el archivo: dales acceso restringido y no escribas diagnósticos en el título ni en la nota.' }
 };
 let currentLinkSection = 'docs';
 let editingLinkId = null;

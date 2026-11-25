@@ -1,9 +1,9 @@
-const CACHE_NAME = 'gurises-v18';
+const CACHE_NAME = 'gurises-v19';
 const ASSETS = [
   './index.html',
   './manifest.json',
-  './icons/icon-192.png?v=5',
-  './icons/icon-512.png?v=5'
+  './icons/icon-192.png?v=6',
+  './icons/icon-512.png?v=6'
 ];
 
 self.addEventListener('install', (event) => {
