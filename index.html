@@ -856,7 +856,7 @@
       <button class="home-tile" id="tileNappy"><span class="ico">🧷</span><span class="nm">Nappy</span><span class="sub">Control de pañal</span></button>
       <button class="home-tile" id="tileClinica"><span class="ico">🩺</span><span class="nm">Historia clínica</span><span class="sub" id="homeClinicaCount">—</span></button>
       <button class="home-tile" id="tileDieta"><span class="ico">🍽️</span><span class="nm">Dieta</span><span class="sub">Menú y compras (Mangiamo)</span></button>
-      <button class="home-tile" id="tileComu"><span class="ico">💬</span><span class="nm">Comunicación</span><span class="sub">Próximamente</span></button>
+      <button class="home-tile" id="tileComu"><span class="ico">💬</span><span class="nm">Comunicación</span><span class="sub">Tarjetas y rutinas (Ecos)</span></button>
       <button class="home-tile" id="tileConfig" style="grid-column:1 / -1;"><span class="ico">⚙️</span><span class="nm">Configuración</span><span class="sub">Módulos, respaldos y apoyo</span></button>
     </div>
   </div>
@@ -1025,7 +1025,7 @@ const MODULOS = [
   {k:'informes',   ico:'📑', nm:'Informes PDF',       ds:'Exportar resúmenes en PDF'},
   {k:'nappy',      ico:'🧷', nm:'Control de pañal (Nappy)', ds:'Si está en edad de pañales: te lleva a Nappy', def:false, app:true},
   {k:'dieta',      ico:'🍽️', nm:'Dieta (Mangiamo)', ds:'Menú semanal y lista de compras según la dieta de cada uno', def:false, app:true},
-  {k:'comunicacion',ico:'💬', nm:'Comunicación (próximamente)', ds:'App de comunicación con imágenes para quienes tienen dificultades para hablar', def:false, app:true},
+  {k:'comunicacion',ico:'💬', nm:'Comunicación (Ecos)', ds:'Tarjetas, módulos y rutinas para quienes hablan poco o nada: te lleva a Ecos', def:false, app:true},
   {k:'sync',       ico:'🔗', nm:'Vincular calendario',ds:'Exportar .ics para Google Calendar, Apple o Outlook'}
 ];
 function modulosDe(h){
@@ -3098,7 +3098,7 @@ document.getElementById('tileTodos').addEventListener('click', openTodoView);
 document.getElementById('tileDocs').addEventListener('click', ()=>openLinksView('docs'));
 document.getElementById('tileNappy').addEventListener('click', ()=>{ window.open('https://abelg88.github.io/Nappy/', '_blank'); });
 document.getElementById('tileDieta').addEventListener('click', ()=>{ window.open('https://abelg88.github.io/mangiamo/', '_blank'); });
-document.getElementById('tileComu').addEventListener('click', ()=>{ alert('Estamos armando una app de comunicación con imágenes y rutinas. ¡Pronto estará disponible acá!'); });
+document.getElementById('tileComu').addEventListener('click', ()=>{ window.open('https://abelg88.github.io/ecos/', '_blank'); });
 document.getElementById('tileClinica').addEventListener('click', ()=>openLinksView('clinica'));
 
 // ---------- Enlaces (Documentos / Historia clínica) ----------
