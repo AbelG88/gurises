@@ -7,39 +7,50 @@
 
 <link rel="icon" href="icons/icon-192.png?v=5">
 <link rel="apple-touch-icon" href="icons/icon-192.png?v=5">
-<meta name="theme-color" content="#c9622a">
+<meta name="theme-color" content="#3b82f6">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="apple-mobile-web-app-title" content="Gurises">
 
 <link rel="manifest" href="manifest.json">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@400;500;600;700&display=swap" rel="stylesheet">
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
 
-</script>
 <style>
   /* Módulos desactivados */
   body.nomod-cuidado .summary, body.nomod-cuidado #addCareBlockFab, body.nomod-cuidado #addCareFromDayBtn,
   body.nomod-cuidado #checkOverlapsBtn, body.nomod-cuidado #todayBanner{display:none !important;}
   body.nomod-pendientes #tileTodos, body.nomod-docs #tileDocs, body.nomod-clinica #tileClinica,
   body.nomod-informes #exportPdfBtn, body.nomod-sync #exportIcsBtn, body.nomod-sync #gcalImportBtn{display:none !important;}
+  button,input,textarea,select{font-family:inherit;}
+  .home-tile{border-radius:24px !important;border:0 !important;box-shadow:0 1px 3px rgba(30,41,59,.08);}
+  #tileCalendar{background:#dbeafe !important;} #tileTodos{background:#d1fae5 !important;} #tileDocs{background:#fef3c7 !important;}
+  #tileClinica{background:#e0e7ff !important;} #tileNappy{background:#ffedd5 !important;} #tileDieta{background:#d1fae5 !important;}
+  .home-intro{background:#fff;border-radius:24px;padding:16px 18px;margin:4px 0 14px;box-shadow:0 1px 3px rgba(30,41,59,.08);position:relative;font-size:.9rem;line-height:1.45;color:var(--ink);}
+  .home-intro b.t{display:block;font-size:1rem;margin-bottom:4px;color:#1e40af;}
+  .home-intro button{position:absolute;top:8px;right:10px;border:0;background:none;font-size:1rem;color:var(--muted);cursor:pointer;}
+  .home-intro .sm{display:block;margin-top:6px;font-size:.78rem;color:var(--muted);}
+  body.nomod-nappy #tileNappy{display:none !important;}
   :root{
     --mama:#e0578c;
     --papa:#3b7ddb;
     --actividad:#7a6a58;
-    --bg:#f7f6f3;
+    --bg:#eff6ff;
     --card:#ffffff;
-    --ink:#2b2b2b;
-    --muted:#8a8a8a;
-    --line:#eae7e1;
-    --accent:#c9622a;
+    --ink:#1e293b;
+    --muted:#64748b;
+    --line:#e2e8f0;
+    --accent:#3b82f6;
   }
   *{box-sizing:border-box;}
   body{
     margin:0;
-    font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;
+    font-family:'Quicksand',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;
     background:var(--bg);
     color:var(--ink);
     padding-bottom:40px;
@@ -816,11 +827,17 @@
   <div class="home-top"><h1><img src="icons/icon-192.png?v=5" alt=""> <span class="hijo-nombre">Gurises</span></h1><button id="cambiarHijoBtn" style="margin-top:6px;font-size:.75rem;padding:4px 12px;border-radius:14px;border:1px solid #ccc;background:#fff;color:#555;">⇄ Cambiar de hijo</button></div>
   <div class="home-body">
     <div class="home-lock">👀 Modo solo lectura <button id="homeUnlockBtn">🔒 Editar</button></div>
+    <div class="home-intro" id="homeIntro"><button id="homeIntroX" aria-label="Ocultar">✕</button>
+      <b class="t">Todo el cuidado, en un solo lugar</b>
+      Gurises junta en una sola app lo que necesitan saber todos los que cuidan a tu hijo/a: quién está cuándo, las actividades y terapias, los pendientes y los documentos importantes. Así nadie depende de mensajes sueltos.
+      <span class="sm">Tus datos viven solo en este celular. Para que otros cuidadores vean lo mismo, compartí el PDF, el calendario (.ics) o el respaldo desde el menú Más.</span>
+    </div>
     <div id="homeToday" style="display:none;"></div>
     <div class="home-grid">
       <button class="home-tile" id="tileCalendar"><span class="ico">📅</span><span class="nm">Calendario</span><span class="sub">Cuidados y actividades</span></button>
       <button class="home-tile" id="tileTodos"><span class="ico">✅</span><span class="nm">Pendientes</span><span class="sub" id="homeTodoCount">—</span></button>
       <button class="home-tile" id="tileDocs"><span class="ico">📄</span><span class="nm">Documentos</span><span class="sub" id="homeDocsCount">—</span></button>
+      <button class="home-tile" id="tileNappy"><span class="ico">🧷</span><span class="nm">Nappy</span><span class="sub">Control de pañal</span></button>
       <button class="home-tile" id="tileClinica"><span class="ico">🩺</span><span class="nm">Historia clínica</span><span class="sub" id="homeClinicaCount">—</span></button>
     </div>
   </div>
@@ -960,10 +977,11 @@ const MODULOS = [
   {k:'docs',       ico:'📄', nm:'Documentos',         ds:'Enlaces a documentación importante'},
   {k:'clinica',    ico:'🩺', nm:'Historia clínica',   ds:'Enlaces y notas de salud'},
   {k:'informes',   ico:'📑', nm:'Informes PDF',       ds:'Exportar resúmenes en PDF'},
+  {k:'nappy',      ico:'🧷', nm:'Control de pañal (Nappy)', ds:'Si está en edad de pañales: te lleva a Nappy', def:false},
   {k:'sync',       ico:'🔗', nm:'Vincular calendario',ds:'Exportar .ics para Google Calendar, Apple o Outlook'}
 ];
 function modulosDe(h){
-  const d = {}; MODULOS.forEach(m=>d[m.k]=true);
+  const d = {}; MODULOS.forEach(m=>d[m.k]=(m.def!==false));
   return Object.assign(d, h && h.modulos ? h.modulos : {});
 }
 function aplicarModulos(h){
@@ -2726,13 +2744,13 @@ function restaurarDesdeArchivo(file, alTerminar){
 }
 function pantallaBase(inner){
   document.title = 'Gurises';
-  document.body.innerHTML = `<div style="max-width:420px;margin:0 auto;padding:40px 20px;text-align:center;font-family:sans-serif;color:#2b2b2b;">${inner}</div>`;
+  document.body.innerHTML = `<div style="max-width:420px;margin:0 auto;padding:40px 20px;text-align:center;font-family:inherit;color:#1e293b;">${inner}</div>`;
 }
-const BTN_PRIM = 'display:block;width:100%;box-sizing:border-box;padding:14px;border-radius:12px;border:0;background:#c9622a;color:#fff;font-size:1rem;font-weight:600;cursor:pointer;';
-const BTN_SEC = 'display:block;width:100%;box-sizing:border-box;padding:12px;border-radius:12px;border:1px solid #e6e3dc;background:#fff;color:#2b2b2b;font-size:.95rem;cursor:pointer;text-decoration:none;';
+const BTN_PRIM = 'display:block;width:100%;box-sizing:border-box;padding:14px;border-radius:16px;border:0;background:#3b82f6;color:#fff;font-size:1rem;font-weight:600;cursor:pointer;';
+const BTN_SEC = 'display:block;width:100%;box-sizing:border-box;padding:12px;border-radius:12px;border:1px solid #e2e8f0;background:#fff;color:#2b2b2b;font-size:.95rem;cursor:pointer;text-decoration:none;';
 function bloqueRestaurar(){
-  return `<div style="margin-top:28px;padding-top:20px;border-top:1px solid #e6e3dc;">
-    <p style="color:#8a8a8a;font-size:.85rem;margin:0 0 10px;">¿Ya usabas Gurises? Restaurá tu respaldo.</p>
+  return `<div style="margin-top:28px;padding-top:20px;border-top:1px solid #e2e8f0;">
+    <p style="color:#64748b;font-size:.85rem;margin:0 0 10px;">¿Ya usabas Gurises? Restaurá tu respaldo.</p>
     <button id="restaurarBtn" style="${BTN_SEC}">📥 Restaurar respaldo</button>
     <input type="file" id="restaurarInput" accept="application/json,.json" style="display:none;">
   </div>`;
@@ -2746,10 +2764,10 @@ function conectarRestaurar(){
 function mostrarAlta(primera){
   pantallaBase(`
     <h1 style="margin:0 0 6px;font-size:1.5rem;">Gurises</h1>
-    <p style="color:#8a8a8a;margin:0 0 24px;">${primera ? 'Calendario de cuidado, pendientes y documentos de tus chicos. Tus datos quedan solo en este celular.' : 'Agregar un hijo/a'}</p>
-    <input id="altaNombre" type="text" maxlength="40" placeholder="Nombre" autocomplete="off" style="width:100%;box-sizing:border-box;padding:14px;border:1px solid #e6e3dc;border-radius:12px;font-size:1.05rem;margin-bottom:12px;">
+    <p style="color:#64748b;margin:0 0 24px;">${primera ? 'Todo el cuidado de tus chicos en un solo lugar: calendario, pendientes y documentos para que todos los cuidadores sepan lo mismo. Tus datos quedan solo en este celular.' : 'Agregar un hijo/a'}</p>
+    <input id="altaNombre" type="text" maxlength="40" placeholder="Nombre" autocomplete="off" style="width:100%;box-sizing:border-box;padding:14px;border:1px solid #e2e8f0;border-radius:12px;font-size:1.05rem;margin-bottom:12px;">
     <div id="altaEmojis" style="display:flex;flex-wrap:wrap;gap:8px;justify-content:center;margin-bottom:18px;">
-      ${EMOJIS_HIJO.map((e,i)=>`<button type="button" data-e="${e}" style="font-size:1.6rem;width:48px;height:48px;border-radius:12px;border:2px solid ${i===0?'#c9622a':'#e6e3dc'};background:#fff;cursor:pointer;">${e}</button>`).join('')}
+      ${EMOJIS_HIJO.map((e,i)=>`<button type="button" data-e="${e}" style="font-size:1.6rem;width:48px;height:48px;border-radius:12px;border:2px solid ${i===0?'#3b82f6':'#e2e8f0'};background:#fff;cursor:pointer;">${e}</button>`).join('')}
     </div>
     <button id="altaOk" style="${BTN_PRIM}">Empezar</button>
     ${!primera ? `<a href="?sel=1" style="${BTN_SEC};margin-top:10px;">Cancelar</a>` : ''}
@@ -2757,7 +2775,7 @@ function mostrarAlta(primera){
   let emoji = EMOJIS_HIJO[0];
   document.querySelectorAll('#altaEmojis button').forEach(b=>b.addEventListener('click', ()=>{
     emoji = b.dataset.e;
-    document.querySelectorAll('#altaEmojis button').forEach(x=>x.style.borderColor = x===b ? '#c9622a' : '#e6e3dc');
+    document.querySelectorAll('#altaEmojis button').forEach(x=>x.style.borderColor = x===b ? '#3b82f6' : '#e2e8f0');
   }));
   document.getElementById('altaOk').addEventListener('click', ()=>{
     const nombre = document.getElementById('altaNombre').value.trim();
@@ -2771,15 +2789,15 @@ function mostrarModulos(h, primera){
   const act = modulosDe(h);
   pantallaBase(`
     <h1 style="margin:0 0 6px;font-size:1.4rem;">¿Qué querés usar?</h1>
-    <p style="color:#8a8a8a;margin:0 0 20px;">${primera ? 'El calendario siempre está. Activá solo lo que necesites; lo podés cambiar después desde Más → Módulos.' : 'Activá o desactivá módulos. No se borra nada.'}</p>
+    <p style="color:#64748b;margin:0 0 20px;">${primera ? 'El calendario siempre está. Activá solo lo que necesites; lo podés cambiar después desde Más → Módulos.' : 'Activá o desactivá módulos. No se borra nada.'}</p>
     <div style="display:grid;gap:10px;text-align:left;">
-      ${MODULOS.map(m=>`<label style="display:flex;gap:12px;align-items:center;padding:14px;border:1px solid #e6e3dc;border-radius:14px;background:#fff;cursor:pointer;">
+      ${MODULOS.map(m=>`<label style="display:flex;gap:12px;align-items:center;padding:14px;border:1px solid #e2e8f0;border-radius:14px;background:#fff;cursor:pointer;">
         <input type="checkbox" data-k="${m.k}" ${act[m.k]?'checked':''} style="width:22px;height:22px;flex:none;">
         <span style="font-size:1.6rem;">${m.ico}</span>
-        <span><b>${m.nm}</b><br><span style="color:#8a8a8a;font-size:.82rem;">${m.ds}</span></span>
+        <span><b>${m.nm}</b><br><span style="color:#64748b;font-size:.82rem;">${m.ds}</span></span>
       </label>`).join('')}
     </div>
-    <p id="modAvisoSync" style="display:none;color:#8a8a8a;font-size:.82rem;margin:14px 0 0;">Con "Vincular calendario" vas a poder bajar un archivo .ics e importarlo en tu calendario. No es una sincronización en vivo.</p>
+    <p id="modAvisoSync" style="display:none;color:#64748b;font-size:.82rem;margin:14px 0 0;">Con "Vincular calendario" vas a poder bajar un archivo .ics e importarlo en tu calendario. No es una sincronización en vivo.</p>
     <button id="modOk" style="${BTN_PRIM};margin-top:20px;">${primera ? 'Empezar' : 'Guardar'}</button>`);
   const aviso = ()=>{ document.getElementById('modAvisoSync').style.display = document.querySelector('[data-k=sync]').checked ? 'block' : 'none'; };
   document.querySelector('[data-k=sync]').addEventListener('change', aviso); aviso();
@@ -2793,9 +2811,9 @@ function mostrarModulos(h, primera){
 function mostrarSelectorHijos(){
   pantallaBase(`
     <h1 style="margin:0 0 6px;font-size:1.5rem;">Gurises</h1>
-    <p style="color:#8a8a8a;margin:0 0 24px;">¿De quién querés ver la info?</p>
+    <p style="color:#64748b;margin:0 0 24px;">¿De quién querés ver la info?</p>
     <div style="display:grid;gap:14px;">
-      ${STORE.hijos.map(h=>`<a href="?fam=${encodeURIComponent(h.id)}" style="display:block;padding:22px 16px;border-radius:16px;background:#fff;border:1px solid #e6e3dc;text-decoration:none;color:#2b2b2b;box-shadow:0 1px 3px rgba(0,0,0,.05);">
+      ${STORE.hijos.map(h=>`<a href="?fam=${encodeURIComponent(h.id)}" style="display:block;padding:22px 16px;border-radius:16px;background:#fff;border:1px solid #e2e8f0;text-decoration:none;color:#2b2b2b;box-shadow:0 1px 3px rgba(0,0,0,.05);">
         <div style="font-size:2rem;line-height:1;">${escapeHtml(h.emoji||'🧒')}</div>
         <div style="font-size:1.2rem;font-weight:600;margin-top:8px;">${escapeHtml(h.nombre)}</div>
       </a>`).join('')}
@@ -2827,8 +2845,8 @@ function avisarBackupSiHaceFalta(){
   if(Date.now() - ultimo < 14*864e5) return;
   const d = document.createElement('div');
   d.id = 'avisoBackup';
-  d.style.cssText = 'position:fixed;left:10px;right:10px;bottom:10px;z-index:90;background:#fff8e1;border:1px solid #f0d58c;border-radius:12px;padding:12px;font-size:.85rem;box-shadow:0 2px 8px rgba(0,0,0,.15);display:flex;gap:10px;align-items:center;';
-  d.innerHTML = '<span style="flex:1;">Tus datos están solo en este celular. Descargá un respaldo.</span><button id="avisoBackupOk" style="padding:8px 12px;border:0;border-radius:8px;background:#c9622a;color:#fff;font-weight:600;">Respaldar</button><button id="avisoBackupX" aria-label="Cerrar" style="border:0;background:none;font-size:1.1rem;">✕</button>';
+  d.style.cssText = 'position:fixed;left:10px;right:10px;bottom:10px;z-index:90;background:#fef3c7;border:1px solid #fde68a;border-radius:12px;padding:12px;font-size:.85rem;box-shadow:0 2px 8px rgba(0,0,0,.15);display:flex;gap:10px;align-items:center;';
+  d.innerHTML = '<span style="flex:1;">Tus datos están solo en este celular. Descargá un respaldo.</span><button id="avisoBackupOk" style="padding:8px 12px;border:0;border-radius:8px;background:#3b82f6;color:#fff;font-weight:600;">Respaldar</button><button id="avisoBackupX" aria-label="Cerrar" style="border:0;background:none;font-size:1.1rem;">✕</button>';
   document.body.appendChild(d);
   document.getElementById('avisoBackupOk').addEventListener('click', exportarTodo);
   document.getElementById('avisoBackupX').addEventListener('click', ()=>{ d.remove(); STORE.meta.ultimoBackup = Date.now() - 7*864e5; guardarStore(); });
@@ -2856,6 +2874,8 @@ function iniciarApp(){
   if(cambiarBtn) cambiarBtn.addEventListener('click', ()=>{ window.location.href = window.location.pathname + '?sel=1'; });
   document.body.classList.remove('read-only-mode');
   aplicarModulos(h);
+  const intro = document.getElementById('homeIntro');
+  if(intro){ if(STORE.meta.introOculta) intro.style.display='none'; document.getElementById('homeIntroX').addEventListener('click', ()=>{ intro.style.display='none'; STORE.meta.introOculta = true; guardarStore(); }); }
   refreshAll();
   avisarBackupSiHaceFalta();
 }
@@ -3004,6 +3024,7 @@ document.getElementById('openHomeBtn').addEventListener('click', ()=>{ renderHom
 document.getElementById('tileCalendar').addEventListener('click', ()=>{ homeEl.classList.remove('open'); window.scrollTo(0,0); });
 document.getElementById('tileTodos').addEventListener('click', openTodoView);
 document.getElementById('tileDocs').addEventListener('click', ()=>openLinksView('docs'));
+document.getElementById('tileNappy').addEventListener('click', ()=>{ window.open('https://abelg88.github.io/Nappy/', '_blank'); });
 document.getElementById('tileClinica').addEventListener('click', ()=>openLinksView('clinica'));
 
 // ---------- Enlaces (Documentos / Historia clínica) ----------

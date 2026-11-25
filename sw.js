@@ -1,4 +1,4 @@
-const CACHE_NAME = 'gurises-v14';
+const CACHE_NAME = 'gurises-v15';
 const ASSETS = [
   './index.html',
   './manifest.json',
@@ -24,7 +24,7 @@ self.addEventListener('activate', (event) => {
 
 // Estrategia: red primero; si hay red se guarda copia (solo del sitio y de las librerías por CDN),
 // y si no hay red se responde con la copia guardada.
-const CACHEABLE_HOSTS = ['www.gstatic.com', 'cdnjs.cloudflare.com'];
+const CACHEABLE_HOSTS = ['www.gstatic.com', 'cdnjs.cloudflare.com', 'fonts.googleapis.com', 'fonts.gstatic.com'];
 self.addEventListener('fetch', (event) => {
   const req = event.request;
   if (req.method !== 'GET') return;
