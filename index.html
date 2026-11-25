@@ -1,0 +1,3360 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Gurises</title>
+
+<link rel="icon" href="icons/icon-192.png?v=5">
+<link rel="apple-touch-icon" href="icons/icon-192.png?v=5">
+<meta name="theme-color" content="#c9622a">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="Gurises">
+
+<link rel="manifest" href="manifest.json">
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
+
+</script>
+<style>
+  :root{
+    --mama:#e0578c;
+    --papa:#3b7ddb;
+    --actividad:#7a6a58;
+    --bg:#f7f6f3;
+    --card:#ffffff;
+    --ink:#2b2b2b;
+    --muted:#8a8a8a;
+    --line:#eae7e1;
+    --accent:#c9622a;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;
+    background:var(--bg);
+    color:var(--ink);
+    padding-bottom:40px;
+  }
+  header{
+    padding:20px 16px 12px;
+    background:var(--card);
+    border-bottom:1px solid var(--line);
+    position:sticky;
+    top:0;
+    z-index:5;
+  }
+  header h1{
+    margin:0 0 4px;
+    font-size:1.3rem;
+    font-weight:700;
+    text-align:center;
+  }
+  .month-nav{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    margin-top:10px;
+  }
+  .month-nav button{
+    background:none;
+    border:1px solid var(--line);
+    border-radius:8px;
+    font-size:1.1rem;
+    padding:6px 14px;
+    cursor:pointer;
+  }
+  .month-label{
+    font-weight:600;
+    font-size:1.05rem;
+    text-transform:capitalize;
+  }
+  main{
+    max-width:900px;
+    margin:0 auto;
+    padding:14px;
+  }
+  .summary{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:10px;
+    margin-bottom:16px;
+  }
+  .summary-card{
+    background:var(--card);
+    border-radius:12px;
+    padding:12px 14px;
+    border:1px solid var(--line);
+  }
+  .summary-card h3{
+    margin:0 0 8px;
+    font-size:.8rem;
+    color:var(--muted);
+    text-transform:uppercase;
+    letter-spacing:.03em;
+  }
+  .summary-row{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    font-size:.92rem;
+    margin-bottom:4px;
+  }
+  .dot{
+    display:inline-block;
+    width:9px;height:9px;
+    border-radius:50%;
+    margin-right:6px;
+  }
+  .dot.mama{background:var(--mama);}
+  .dot.papa{background:var(--papa);}
+  .summary-diff{
+    font-size:.75rem;
+    color:var(--muted);
+    margin-top:6px;
+    padding-top:6px;
+    border-top:1px dashed var(--line);
+    font-weight:600;
+  }
+  #todayBanner,#homeToday{
+    background:linear-gradient(135deg, #fff8f0, #fdf2e9);
+    border:1px solid #f0ddc4;
+    border-radius:12px;
+    padding:12px 14px;
+    margin-bottom:14px;
+    font-size:.88rem;
+    line-height:1.5;
+  }
+  #todayBanner b,#homeToday b{display:block;font-size:.72rem;color:var(--accent);text-transform:uppercase;letter-spacing:.03em;margin-bottom:4px;}
+
+  /* Modo solo-lectura: ocultar todo lo que permite modificar datos */
+  body.read-only-mode .fab,
+  body.read-only-mode #addFromDayBtn,
+  body.read-only-mode #addCareFromDayBtn,
+  body.read-only-mode #manageTemplatesBtn,
+  body.read-only-mode .small-btn,
+  body.read-only-mode #exportProposalBtn,
+  body.read-only-mode #importProposalBtn,
+  body.read-only-mode #deleteMonthBtn{
+    display:none !important;
+  }
+  .read-only-badge{
+    display:none;
+    text-align:center;
+    font-size:.72rem;
+    color:var(--muted);
+    background:#f0f0f0;
+    padding:6px;
+    border-radius:8px;
+    margin-bottom:10px;
+  }
+  body.read-only-mode .read-only-badge{ display:block; }
+  .calendar{
+    background:var(--card);
+    border-radius:12px;
+    border:1px solid var(--line);
+    overflow:hidden;
+  }
+  .weekdays{
+    display:grid;
+    grid-template-columns:repeat(7,1fr);
+    background:#faf9f7;
+    border-bottom:1px solid var(--line);
+  }
+  .weekdays div{
+    text-align:center;
+    font-size:.7rem;
+    color:var(--muted);
+    padding:8px 0;
+    font-weight:600;
+    text-transform:uppercase;
+  }
+  .days-grid{
+    display:grid;
+    grid-template-columns:repeat(7,1fr);
+  }
+  .day-cell{
+    min-height:78px;
+    border-right:1px solid var(--line);
+    border-bottom:1px solid var(--line);
+    padding:4px;
+    cursor:pointer;
+    position:relative;
+    display:flex;
+    flex-direction:column;
+    transition:background .1s;
+  }
+  .day-cell.care-mama{background:rgba(224,87,140,.16);}
+  .day-cell.care-papa{background:rgba(59,125,219,.16);}
+  .day-cell.care-split{
+    background:linear-gradient(90deg, rgba(224,87,140,.16) 50%, rgba(59,125,219,.16) 50%);
+  }
+  .day-cell.care-gap::after{
+    content:'⚠';
+    position:absolute;
+    top:2px;
+    right:2px;
+    font-size:.7rem;
+  }
+  .day-cell:hover{background:#faf8f5;}
+  .day-cell.other-month{opacity:.35;}
+  .day-cell.today .day-num{
+    background:var(--accent);
+    color:#fff;
+    border-radius:50%;
+  }
+  .day-num{
+    font-size:.78rem;
+    width:20px;height:20px;
+    display:flex;align-items:center;justify-content:center;
+    margin-bottom:2px;
+  }
+  .events-mini{
+    display:flex;
+    flex-direction:column;
+    gap:2px;
+    overflow:hidden;
+  }
+  .event-chip{
+    font-size:.62rem;
+    padding:1px 4px;
+    border-radius:4px;
+    color:#fff;
+    white-space:nowrap;
+    overflow:hidden;
+    text-overflow:ellipsis;
+  }
+  .event-chip.mama{background:var(--mama);}
+  .event-chip.papa{background:var(--papa);}
+  .event-chip.otro{background:#9a9a9a;}
+  .event-chip.actividad{background:var(--actividad);}
+  .event-chip.handoff{background:var(--accent);font-weight:700;}
+  .fab{
+    position:fixed;
+    bottom:22px;
+    right:22px;
+    width:56px;height:56px;
+    border-radius:50%;
+    background:var(--accent);
+    color:#fff;
+    border:none;
+    font-size:1.8rem;
+    box-shadow:0 4px 14px rgba(0,0,0,.25);
+    cursor:pointer;
+    z-index:8;
+  }
+  .toolbar{
+    display:flex;
+    gap:8px;
+    margin:12px 0;
+  }
+  .toolbar button{
+    flex:1;
+    padding:10px;
+    border-radius:10px;
+    border:1px solid var(--line);
+    background:var(--card);
+    font-size:.85rem;
+    cursor:pointer;
+  }
+  .menu-item{
+    display:block;
+    width:100%;
+    text-align:left;
+    padding:13px 16px;
+    border:none;
+    border-bottom:1px solid var(--line);
+    background:var(--card);
+    font-size:.9rem;
+    cursor:pointer;
+  }
+  .menu-item:last-child{border-bottom:none;}
+  .menu-item:active{background:#faf8f5;}
+  .modal-overlay{
+    display:none;
+    position:fixed;
+    inset:0;
+    background:rgba(0,0,0,.4);
+    z-index:20;
+    align-items:center;
+    justify-content:center;
+    padding:20px;
+  }
+  .modal-overlay.open{display:flex;}
+  .modal{
+    background:#fff;
+    width:100%;
+    max-width:480px;
+    border-radius:16px;
+    padding:20px;
+    max-height:88vh;
+    overflow-y:auto;
+    animation:popup .18s ease-out;
+  }
+  @keyframes popup{from{transform:scale(.96);opacity:0;}to{transform:scale(1);opacity:1;}}
+  .modal h2{margin-top:0;font-size:1.1rem;text-align:center;}
+  .field{margin-bottom:14px;}
+  .field label{
+    display:block;
+    font-size:.78rem;
+    color:var(--muted);
+    margin-bottom:5px;
+    font-weight:600;
+  }
+  .field input,.field select,.field textarea{
+    width:100%;
+    padding:10px;
+    border-radius:8px;
+    border:1px solid var(--line);
+    font-size:.95rem;
+    font-family:inherit;
+  }
+  .field-row{display:flex;gap:10px;}
+  .field-row .field{flex:1;}
+  .cat-selector{display:flex;gap:8px;}
+  .cat-btn{
+    flex:1;
+    padding:10px;
+    border-radius:8px;
+    border:2px solid var(--line);
+    background:#fff;
+    cursor:pointer;
+    font-size:.85rem;
+    font-weight:600;
+    text-align:center;
+  }
+  .cat-btn.sel-mama{border-color:var(--mama);background:#fce8f0;}
+  .cat-btn.sel-papa{border-color:var(--papa);background:#e8f0fc;}
+  .cat-btn.sel-otro{border-color:#9a9a9a;background:#f0f0f0;}
+  .modal-actions{
+    display:flex;
+    gap:10px;
+    margin-top:18px;
+  }
+  .btn{
+    flex:1;
+    padding:12px;
+    border-radius:10px;
+    border:none;
+    font-size:.9rem;
+    font-weight:600;
+    cursor:pointer;
+  }
+  .btn-primary{background:var(--accent);color:#fff;}
+  .btn-secondary{background:#eee;color:#333;}
+  .btn-danger{background:#fdeaea;color:#c0392b;}
+  .day-events-list{
+    display:flex;
+    flex-direction:column;
+    gap:8px;
+    margin-bottom:14px;
+  }
+  .day-event-item{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    padding:10px;
+    border-radius:8px;
+    border-left:4px solid;
+    background:#faf9f7;
+  }
+  .day-event-item .info b{display:block;font-size:.9rem;}
+  .day-event-item .info span{font-size:.78rem;color:var(--muted);}
+  .day-event-item.mama{border-color:var(--mama);}
+  .day-event-item.papa{border-color:var(--papa);}
+  .day-event-item.otro{border-color:#9a9a9a;}
+  .day-event-item.actividad{border-color:var(--actividad);}
+  .small-btn{
+    background:none;border:none;color:var(--muted);cursor:pointer;font-size:.9rem;padding:4px 8px;
+  }
+  .repeat-options{display:none;}
+  .repeat-options.open{display:block;}
+  .checkbox-row{display:flex;align-items:center;gap:6px;margin-bottom:10px;}
+  .checkbox-row input{width:auto;}
+  .empty-hint{
+    text-align:center;
+    color:var(--muted);
+    font-size:.85rem;
+    padding:16px;
+  }
+
+  /* ---- Vista semanal ---- */
+  .week-view-grid{
+    background:var(--card);
+    border-radius:12px;
+    border:1px solid var(--line);
+    overflow:hidden;
+  }
+  .week-day-row{
+    border-bottom:1px solid var(--line);
+    padding:10px 12px;
+    cursor:pointer;
+    transition:background .1s;
+  }
+  .week-day-row:last-child{border-bottom:none;}
+  .week-day-row:hover{background:#faf8f5;}
+  .week-day-row.care-mama{border-left:4px solid var(--mama);}
+  .week-day-row.care-papa{border-left:4px solid var(--papa);}
+  .week-day-row.care-split{border-left:4px solid #9b59b6;}
+  .week-day-row.today-row{background:#fff8f0;}
+  .week-day-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:4px;}
+  .week-day-name{font-weight:700;font-size:.92rem;}
+  .week-day-date{font-size:.75rem;color:var(--muted);}
+  .week-care-bar{
+    display:flex;height:18px;border-radius:4px;overflow:hidden;margin:4px 0;background:#f0ede8;
+  }
+  .week-care-seg{height:100%;}
+  .week-care-seg.mama{background:var(--mama);opacity:.75;}
+  .week-care-seg.papa{background:var(--papa);opacity:.75;}
+  .week-care-seg.gap{background:#e0dbd3;}
+  .week-events-list{display:flex;flex-wrap:wrap;gap:4px;margin-top:3px;}
+  .week-event-chip{font-size:.7rem;padding:2px 7px;border-radius:10px;background:#ede9e3;color:var(--ink);}
+  .week-hours-row{font-size:.72rem;color:var(--muted);margin-top:3px;}
+
+  /* ---- Pendientes (pantalla aparte del calendario) ---- */
+  #todoView{display:none;position:fixed;inset:0;background:var(--bg);z-index:30;overflow-y:auto;}
+  #todoView.open{display:block;}
+  .todo-header{position:sticky;top:0;background:var(--accent);color:#fff;display:flex;align-items:center;gap:10px;padding:12px 14px;z-index:2;}
+  .todo-header h1{margin:0;font-size:1.1rem;flex:1;}
+  .todo-header button{border:none;background:rgba(255,255,255,.25);color:#fff;border-radius:8px;padding:7px 12px;font-size:.85rem;font-weight:600;cursor:pointer;}
+  .todo-body{max-width:560px;margin:0 auto;padding:14px 14px 90px;}
+  .todo-item{display:flex;gap:12px;align-items:flex-start;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:12px;margin-bottom:8px;}
+  .todo-check{width:22px;height:22px;margin-top:2px;flex-shrink:0;accent-color:var(--accent);cursor:pointer;}
+  .todo-main{flex:1;min-width:0;cursor:pointer;}
+  .todo-title{font-weight:600;font-size:.95rem;word-break:break-word;}
+  .todo-detail{font-size:.82rem;color:var(--muted);margin-top:3px;white-space:pre-wrap;word-break:break-word;}
+  .todo-date{display:inline-block;font-size:.74rem;margin-top:5px;padding:2px 8px;border-radius:10px;background:#ede9e3;color:var(--ink);}
+  .todo-date.overdue{background:#fdecea;color:#c0392b;font-weight:600;}
+  .todo-date.today{background:#fff3e0;color:#b9651a;font-weight:600;}
+  .todo-empty{text-align:center;color:var(--muted);font-size:.9rem;padding:30px 10px;}
+  .todo-section-btn{width:100%;padding:11px;margin:14px 0 8px;border:1px solid var(--line);background:var(--card);border-radius:10px;font-size:.85rem;cursor:pointer;color:var(--muted);}
+  .todo-item.archived .todo-title{text-decoration:line-through;color:var(--muted);}
+  body.read-only-mode .todo-edit{display:none !important;}
+  body.read-only-mode .todo-check{pointer-events:none;opacity:.5;}
+
+  /* ---- Panel principal + Enlaces ---- */
+  #homeView,#linksView{display:none;position:fixed;inset:0;background:var(--bg);z-index:30;overflow-y:auto;}
+  #homeView.open,#linksView.open{display:block;}
+  .home-top{padding:22px 16px 6px;text-align:center;}
+  .home-top h1{margin:0;font-size:1.4rem;}
+  .home-lock{display:none;text-align:center;font-size:.72rem;color:var(--muted);background:#f0f0f0;padding:6px;border-radius:8px;margin-bottom:12px;}
+  body.read-only-mode .home-lock{display:block;}
+  .home-lock button{margin-left:8px;border:1px solid var(--muted);background:#fff;border-radius:6px;padding:3px 10px;font-size:.72rem;cursor:pointer;}
+  .home-top img{width:30px;height:30px;vertical-align:-7px;border-radius:7px;margin-right:6px;}
+  .home-body{max-width:560px;margin:0 auto;padding:10px 14px 40px;}
+  .home-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:6px;}
+  .home-tile{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:18px 12px;text-align:center;cursor:pointer;font-family:inherit;color:var(--ink);}
+  .home-tile:active{background:#faf8f5;}
+  .home-tile .ico{font-size:2rem;display:block;margin-bottom:6px;}
+  .home-tile .ico svg{width:1.2em;height:.92em;display:inline-block;}
+  .ico-inline{width:1.2em;height:.92em;vertical-align:-.12em;margin-right:6px;}
+  .home-tile .nm{font-weight:700;font-size:1rem;display:block;}
+  .home-tile .sub{font-size:.76rem;color:var(--muted);display:block;margin-top:3px;}
+  .panel-btn{position:absolute;left:12px;top:18px;border:1px solid var(--line);background:var(--card);border-radius:8px;padding:6px 10px;font-size:.8rem;cursor:pointer;}
+  .links-notice{font-size:.8rem;color:#856404;background:#fffbe6;border:1px solid #f0d98a;border-radius:10px;padding:10px 12px;margin-bottom:12px;line-height:1.4;}
+  .link-cat{font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:.04em;color:var(--accent);margin:16px 2px 6px;}
+  .link-item{display:flex;align-items:stretch;background:var(--card);border:1px solid var(--line);border-radius:12px;margin-bottom:8px;overflow:hidden;}
+  .link-main{flex:1;min-width:0;padding:12px;text-decoration:none;color:var(--ink);}
+  .link-main:active{background:#faf8f5;}
+  .link-title{font-weight:600;font-size:.95rem;word-break:break-word;}
+  .link-note{font-size:.8rem;color:var(--muted);margin-top:3px;white-space:pre-wrap;word-break:break-word;}
+  .link-host{font-size:.72rem;color:var(--muted);margin-top:4px;}
+  .link-edit{border:none;border-left:1px solid var(--line);background:none;padding:0 14px;font-size:1rem;cursor:pointer;color:var(--muted);}
+  body.read-only-mode .link-edit{display:none !important;}
+
+  /* ---- Modo copia ---- */
+  .copy-action-btn{
+    padding:6px 12px;border-radius:8px;border:none;background:rgba(255,255,255,.25);
+    color:#fff;font-size:.78rem;font-weight:600;cursor:pointer;
+  }
+  .copy-action-btn:hover{background:rgba(255,255,255,.4);}
+  .day-cell.copy-origin{outline:3px solid #e67e22;outline-offset:-2px;}
+  .day-cell.copy-dest-hover{outline:3px dashed #27ae60;outline-offset:-2px;}
+</style>
+</head>
+<body>
+
+<header>
+  <button class="panel-btn" id="openHomeBtn">☰ Panel</button>
+  <h1><img src="icons/icon-192.png?v=5" alt="" style="width:28px;height:28px;vertical-align:-6px;border-radius:6px;margin-right:6px;"> <span class="hijo-nombre">Gurises</span></h1>
+  <div class="month-nav">
+    <button id="prevMonth">‹</button>
+    <div class="month-label" id="monthLabel"></div>
+    <button id="nextMonth">›</button>
+  </div>
+</header>
+
+<main>
+  <div class="read-only-badge">
+    👀 Modo solo lectura
+    <button id="unlockEditBtn" style="margin-left:8px;border:1px solid var(--muted);background:#fff;border-radius:6px;padding:3px 10px;font-size:.72rem;cursor:pointer;">🔒 Editar</button>
+  </div>
+  <div id="todayBanner" style="display:none;"></div>
+  <div class="summary">
+    <div class="summary-card">
+      <h3 id="weekSummaryLabel">Esta semana</h3>
+      <div class="summary-row"><span><span class="dot mama"></span>Mamá</span><b id="weekMama">0h</b></div>
+      <div class="summary-row"><span><span class="dot papa"></span>Papá</span><b id="weekPapa">0h</b></div>
+      <div class="summary-diff" id="weekDiff"></div>
+    </div>
+    <div class="summary-card">
+      <h3 id="monthSummaryLabel">Este mes</h3>
+      <div class="summary-row"><span><span class="dot mama"></span>Mamá</span><b id="monthMama">0h</b></div>
+      <div class="summary-row"><span><span class="dot papa"></span>Papá</span><b id="monthPapa">0h</b></div>
+      <div class="summary-diff" id="monthDiff"></div>
+      <div id="monthCoverage" style="margin-top:6px;font-size:.75rem;"></div>
+    </div>
+  </div>
+
+  <div class="toolbar">
+    <button id="viewToggleBtn">📅 Vista semana</button>
+    <button id="copyModeBtn">📋 Copiar</button>
+    <button id="moreOptionsBtn" style="position:relative;">⋯ Más</button>
+  </div>
+  <div class="toolbar" style="margin-top:-4px;">
+    <button id="toggleActivitiesBtn">👁️ Ocultar actividades</button>
+    <button id="manageTemplatesBtn">⚙️ Plantillas</button>
+  </div>
+  <div id="moreOptionsMenu" style="display:none;background:var(--card);border:1px solid var(--line);border-radius:10px;margin:-4px 0 12px;overflow:hidden;">
+    <button class="menu-item" id="exportPdfBtn">⬇️ Exportar PDF</button>
+    <button class="menu-item" id="exportIcsBtn">📆 Exportar .ics</button>
+    <button class="menu-item" id="backupTodoBtn">💾 Respaldo de todos (descargar)</button>
+    <button class="menu-item" id="exportProposalBtn">💾 Exportar solo este hijo/a</button>
+    <button class="menu-item" id="importProposalBtn">📥 Importar en este hijo/a</button>
+    <button class="menu-item" id="deleteMonthBtn" style="color:#c0392b;">🗑️ Borrar mes actual</button>
+    <button class="menu-item" id="deleteRangeBtn" style="color:#c0392b;">🗑️ Borrar por rango de fechas</button>
+    <button class="menu-item" id="checkOverlapsBtn">⚠️ Verificar superposiciones</button>
+  </div>
+
+  <!-- Modal borrar por rango -->
+  <div id="deleteRangeModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:200;padding:20px 12px;overflow-y:auto;">
+    <div style="background:var(--card);border-radius:14px;max-width:400px;margin:0 auto;padding:20px;">
+      <h3 style="margin:0 0 14px;font-size:1.05rem;">🗑️ Borrar por rango de fechas</h3>
+      <p style="font-size:.85rem;color:var(--muted);margin:0 0 14px;">Borra todos los bloques de cuidado y actividades entre las fechas indicadas.</p>
+      <label style="font-size:.85rem;font-weight:600;">Desde</label>
+      <input type="date" id="deleteRangeFrom" style="width:100%;margin:4px 0 12px;padding:8px;border:1px solid var(--line);border-radius:8px;font-size:1rem;">
+      <label style="font-size:.85rem;font-weight:600;">Hasta</label>
+      <input type="date" id="deleteRangeTo" style="width:100%;margin:4px 0 16px;padding:8px;border:1px solid var(--line);border-radius:8px;font-size:1rem;">
+      <div id="deleteRangePreview" style="font-size:.82rem;color:var(--muted);margin-bottom:14px;min-height:18px;"></div>
+      <div style="display:flex;gap:8px;">
+        <button id="deleteRangeCancelBtn" style="flex:1;padding:10px;border:1px solid var(--line);background:none;border-radius:8px;cursor:pointer;">Cancelar</button>
+        <button id="deleteRangeConfirmBtn" style="flex:1;padding:10px;background:#c0392b;color:#fff;border:none;border-radius:8px;cursor:pointer;font-weight:600;">Borrar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal validación de cobertura mensual -->
+  <div id="coverageModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:200;overflow-y:auto;padding:20px 12px;">
+    <div style="background:var(--card);border-radius:14px;max-width:520px;margin:0 auto;padding:20px;">
+      <h3 style="margin:0 0 4px;font-size:1.1rem;">📊 Cobertura del mes</h3>
+      <p id="coverageSubtitle" style="margin:0 0 14px;color:var(--muted);font-size:.85rem;"></p>
+      <div id="coverageBody"></div>
+      <div style="margin-top:16px;display:flex;justify-content:flex-end;">
+        <button id="coverageCloseBtn" style="padding:8px 18px;border:1px solid var(--line);background:none;border-radius:8px;cursor:pointer;">Cerrar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal chequeador de superposiciones -->
+  <div id="overlapModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:200;overflow-y:auto;padding:20px 12px;">
+    <div style="background:var(--card);border-radius:14px;max-width:520px;margin:0 auto;padding:20px;">
+      <h3 style="margin:0 0 4px;font-size:1.1rem;">⚠️ Superposiciones detectadas</h3>
+      <p id="overlapSubtitle" style="margin:0 0 14px;color:var(--muted);font-size:.85rem;"></p>
+      <div id="overlapList"></div>
+      <div style="margin-top:16px;display:flex;justify-content:flex-end;">
+        <button id="overlapCloseBtn" style="padding:8px 18px;border:1px solid var(--line);background:none;border-radius:8px;cursor:pointer;">Cerrar</button>
+      </div>
+    </div>
+  </div>
+  <input type="file" id="importFileInput" accept=".json" style="display:none;">
+
+  <!-- Banner modo copia -->
+  <div id="copyBanner" style="display:none;background:#e67e22;color:#fff;padding:10px 14px;border-radius:10px;margin-bottom:10px;font-size:.88rem;">
+    <b>📋 Modo copia</b> — <span id="copySourceLabel">Seleccioná el día/semana/mes origen</span><br>
+    <div style="margin-top:8px;display:flex;gap:6px;flex-wrap:wrap;">
+      <button id="copySelectDayBtn" class="copy-action-btn">📆 Origen: día</button>
+      <button id="copySelectWeekBtn" class="copy-action-btn">📅 Origen: semana</button>
+      <button id="copySelectMonthBtn" class="copy-action-btn">🗓️ Origen: mes</button>
+      <button id="copyPasteBtn" class="copy-action-btn" style="display:none;background:#27ae60;">✅ Pegar aquí</button>
+      <button id="copyCancelBtn" class="copy-action-btn" style="background:rgba(0,0,0,.25);">✕ Cancelar</button>
+    </div>
+  </div>
+
+  <div id="calendarView">
+    <div class="calendar">
+      <div class="weekdays">
+        <div>Dom</div><div>Lun</div><div>Mar</div><div>Mié</div><div>Jue</div><div>Vie</div><div>Sáb</div>
+      </div>
+      <div class="days-grid" id="daysGrid"></div>
+    </div>
+  </div>
+  <div id="weekView" style="display:none;"></div>
+</main>
+
+<button class="fab" id="addEventFab" style="bottom:22px;">+</button>
+<button class="fab" id="addCareBlockFab" style="bottom:90px;background:var(--ink);font-size:1.3rem;display:flex;align-items:center;justify-content:center;position:fixed;">
+  <span style="position:relative;display:inline-block;">
+    🏠<span style="position:absolute;bottom:-6px;right:-10px;background:var(--accent);color:#fff;border-radius:50%;width:16px;height:16px;font-size:.75rem;line-height:16px;text-align:center;font-weight:700;">+</span>
+  </span>
+</button>
+
+<!-- Modal: Día seleccionado -->
+<div class="modal-overlay" id="dayModal">
+  <div class="modal">
+    <h2 id="dayModalTitle">Día</h2>
+    <div class="day-events-list" id="dayEventsList"></div>
+    <button class="btn btn-primary" id="addFromDayBtn" style="width:100%;">+ Agregar actividad este día</button>
+    <button class="btn btn-secondary" id="addCareFromDayBtn" style="width:100%;margin-top:8px;">🏠 Agregar bloque de cuidado</button>
+    <div class="modal-actions">
+      <button class="btn btn-secondary" id="closeDayModal" style="width:100%;">Cerrar</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal: Crear/editar evento -->
+<div class="modal-overlay" id="eventModal">
+  <div class="modal">
+    <h2 id="eventModalTitle">Nueva actividad</h2>
+    <input type="hidden" id="editEventId">
+
+    <div class="field" id="templatesField">
+      <label>Plantillas rápidas</label>
+      <div id="templatesRow" style="display:flex;flex-wrap:wrap;gap:6px;"></div>
+    </div>
+
+    <div class="field">
+      <label>Título</label>
+      <input type="text" id="eventTitle" placeholder="Ej: Colegio, Turno médico...">
+    </div>
+
+    <div class="checkbox-row">
+      <input type="checkbox" id="multiDayToggle">
+      <label for="multiDayToggle" style="margin:0;">Abarca varios días (ej: finde completo)</label>
+    </div>
+
+    <div class="field-row">
+      <div class="field">
+        <label id="eventDateLabel">Fecha</label>
+        <input type="date" id="eventDate">
+      </div>
+      <div class="field" id="eventEndDateField" style="display:none;">
+        <label>Hasta fecha</label>
+        <input type="date" id="eventEndDate">
+      </div>
+    </div>
+
+    <div class="field-row">
+      <div class="field">
+        <label id="eventStartLabel">Hora inicio</label>
+        <input type="time" id="eventStart" value="08:00">
+      </div>
+      <div class="field">
+        <label id="eventEndLabel">Hora fin</label>
+        <input type="time" id="eventEnd" value="09:00">
+      </div>
+    </div>
+
+    <div class="field">
+      <label>Notas (opcional)</label>
+      <textarea id="eventNotes" rows="2" placeholder="Detalles adicionales..."></textarea>
+    </div>
+
+    <div class="checkbox-row">
+      <input type="checkbox" id="repeatToggle">
+      <label for="repeatToggle" style="margin:0;">Repetir este evento</label>
+    </div>
+
+    <div class="repeat-options" id="repeatOptions">
+      <div class="field">
+        <label>Frecuencia</label>
+        <select id="repeatFreq">
+          <option value="weekly">Semanal (mismo día de semana)</option>
+          <option value="daily">Diario</option>
+          <option value="biweekly">Cada 2 semanas</option>
+        </select>
+      </div>
+      <div class="field">
+        <label>Repetir hasta</label>
+        <input type="date" id="repeatUntil">
+      </div>
+    </div>
+
+    <div class="modal-actions">
+      <button class="btn btn-danger" id="deleteEventBtn" style="display:none;">Eliminar</button>
+      <button class="btn btn-secondary" id="cancelEventBtn">Cancelar</button>
+      <button class="btn btn-primary" id="saveEventBtn">Guardar</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal: Gestionar plantillas -->
+<div class="modal-overlay" id="templatesModal">
+  <div class="modal">
+    <h2>Plantillas de eventos recurrentes</h2>
+    <div id="templatesList" class="day-events-list"></div>
+    <button class="btn btn-primary" id="addTemplateBtn" style="width:100%;margin-bottom:10px;">+ Nueva plantilla</button>
+    <button class="btn btn-secondary" id="closeTemplatesModal" style="width:100%;">Cerrar</button>
+  </div>
+</div>
+
+<!-- Modal: Nueva plantilla -->
+<div class="modal-overlay" id="templateFormModal">
+  <div class="modal">
+    <h2>Nueva plantilla</h2>
+    <div class="field">
+      <label>Título</label>
+      <input type="text" id="tplTitle" placeholder="Ej: Fonoaudiología">
+    </div>
+    <div class="field-row">
+      <div class="field">
+        <label>Hora inicio</label>
+        <input type="time" id="tplStart" value="09:00">
+      </div>
+      <div class="field">
+        <label>Hora fin</label>
+        <input type="time" id="tplEnd" value="10:00">
+      </div>
+    </div>
+    <div class="field">
+      <label>Nota (opcional)</label>
+      <input type="text" id="tplNote" placeholder="Ej: Lunes y jueves">
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-secondary" id="cancelTplBtn" style="width:100%;">Cancelar</button>
+      <button class="btn btn-primary" id="saveTplBtn" style="width:100%;">Guardar</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal: Revisar propuesta importada -->
+<div class="modal-overlay" id="proposalModal">
+  <div class="modal">
+    <h2>Respaldo encontrado</h2>
+    <p style="font-size:.85rem;color:var(--muted);">Se encontraron: <b id="proposalCount">0</b>. ¿Qué querés hacer?</p>
+    <div id="proposalPreview" style="max-height:200px;overflow-y:auto;font-size:.8rem;margin-bottom:14px;"></div>
+    <div class="modal-actions">
+      <button class="btn btn-secondary" id="cancelProposalBtn" style="width:100%;">Cancelar</button>
+      <button class="btn btn-primary" id="mergeProposalBtn" style="width:100%;">Agregar a mi calendario</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal: Bloque de cuidado -->
+<div class="modal-overlay" id="careBlockModal">
+  <div class="modal">
+    <h2 id="careBlockModalTitle">Bloque de cuidado</h2>
+    <input type="hidden" id="editCareBlockId">
+    <p style="font-size:.8rem;color:var(--muted);margin-top:-6px;">Define quién tiene al nene a cargo en ese rango. Es lo único que suma horas de cuidado.</p>
+
+    <div class="field">
+      <label>¿Quién cuida?</label>
+      <div class="cat-selector">
+        <button type="button" class="cat-btn care-cat-btn" data-cat="mama">👩 Mamá</button>
+        <button type="button" class="cat-btn care-cat-btn" data-cat="papa">👨 Papá</button>
+      </div>
+    </div>
+
+    <div class="field-row">
+      <div class="field">
+        <label>Desde (fecha)</label>
+        <input type="date" id="careStartDate">
+      </div>
+      <div class="field">
+        <label>Hora</label>
+        <input type="time" id="careStartTime" value="08:00">
+      </div>
+    </div>
+    <div class="field-row">
+      <div class="field">
+        <label>Hasta (fecha)</label>
+        <input type="date" id="careEndDate">
+      </div>
+      <div class="field">
+        <label>Hora</label>
+        <input type="time" id="careEndTime" value="20:00">
+      </div>
+    </div>
+
+    <div class="checkbox-row" id="careRepeatRow">
+      <input type="checkbox" id="careRepeatToggle">
+      <label for="careRepeatToggle" style="margin:0;">Repetir este bloque</label>
+    </div>
+    <div class="repeat-options" id="careRepeatOptions">
+      <div class="field">
+        <label>Frecuencia</label>
+        <select id="careRepeatFreq">
+          <option value="weekly">Semanal (mismo patrón cada semana)</option>
+          <option value="biweekly">Cada 2 semanas</option>
+        </select>
+      </div>
+      <div class="field">
+        <label>Repetir hasta</label>
+        <input type="date" id="careRepeatUntil">
+      </div>
+    </div>
+
+    <div class="modal-actions">
+      <button class="btn btn-danger" id="deleteCareBlockBtn" style="display:none;">Eliminar</button>
+      <button class="btn btn-secondary" id="cancelCareBlockBtn">Cancelar</button>
+      <button class="btn btn-primary" id="saveCareBlockBtn">Guardar</button>
+    </div>
+  </div>
+</div>
+
+<!-- Pantalla: Panel principal -->
+<div id="homeView" class="open">
+  <div class="home-top"><h1><img src="icons/icon-192.png?v=5" alt=""> <span class="hijo-nombre">Gurises</span></h1><button id="cambiarHijoBtn" style="margin-top:6px;font-size:.75rem;padding:4px 12px;border-radius:14px;border:1px solid #ccc;background:#fff;color:#555;">⇄ Cambiar de hijo</button></div>
+  <div class="home-body">
+    <div class="home-lock">👀 Modo solo lectura <button id="homeUnlockBtn">🔒 Editar</button></div>
+    <div id="homeToday" style="display:none;"></div>
+    <div class="home-grid">
+      <button class="home-tile" id="tileCalendar"><span class="ico">📅</span><span class="nm">Calendario</span><span class="sub">Cuidados y actividades</span></button>
+      <button class="home-tile" id="tileTodos"><span class="ico">✅</span><span class="nm">Pendientes</span><span class="sub" id="homeTodoCount">—</span></button>
+      <button class="home-tile" id="tileDocs"><span class="ico">📄</span><span class="nm">Documentos</span><span class="sub" id="homeDocsCount">—</span></button>
+      <button class="home-tile" id="tileClinica"><span class="ico">🩺</span><span class="nm">Historia clínica</span><span class="sub" id="homeClinicaCount">—</span></button>
+    </div>
+  </div>
+</div>
+
+<!-- Pantalla: Enlaces (Documentos / Historia clínica) -->
+<div id="linksView">
+  <div class="todo-header">
+    <button id="linksBackBtn">‹ Volver</button>
+    <h1 id="linksTitle"></h1>
+    <button id="linksAddBtn" class="todo-edit">＋ Nuevo</button>
+  </div>
+  <div class="todo-body">
+    <div id="linksNotice" class="links-notice" style="display:none;"></div>
+    <div id="linksList"></div>
+  </div>
+</div>
+
+<!-- Modal: Enlace (crear / editar) -->
+<div class="modal-overlay" id="linkModal" style="z-index:40;">
+  <div class="modal">
+    <h2 id="linkModalTitle">Nuevo enlace</h2>
+    <div class="field"><label>Título</label><input type="text" id="linkTitleInput" maxlength="120" placeholder="Ej: Certificado de discapacidad"></div>
+    <div class="field"><label>Enlace</label><input type="url" id="linkUrlInput" inputmode="url" placeholder="https://..."></div>
+    <div class="field"><label>Categoría</label><input type="text" id="linkCatInput" maxlength="40" list="linkCatList" placeholder="Ej: Colegio, Obra social, Estudios"><datalist id="linkCatList"></datalist></div>
+    <div class="field"><label>Nota</label><textarea id="linkNoteInput" rows="2" placeholder="Opcional"></textarea></div>
+    <div class="modal-actions">
+      <button class="btn btn-danger" id="linkDeleteBtn" style="display:none;">Borrar</button>
+      <button class="btn btn-secondary" id="linkCancelBtn">Cancelar</button>
+      <button class="btn btn-primary" id="linkSaveBtn">Guardar</button>
+    </div>
+  </div>
+</div>
+
+<!-- Pantalla: Pendientes (separada del calendario) -->
+<div id="todoView">
+  <div class="todo-header">
+    <button id="todoBackBtn">‹ Volver</button>
+    <h1>✅ Pendientes</h1>
+    <button id="todoAddBtn" class="todo-edit">＋ Nueva</button>
+  </div>
+  <div class="todo-body">
+    <div id="todoList"></div>
+    <button class="todo-section-btn" id="todoToggleArchiveBtn"></button>
+    <div id="todoArchive" style="display:none;"></div>
+  </div>
+</div>
+
+<!-- Modal: Pendiente (crear / editar) -->
+<div class="modal-overlay" id="todoModal" style="z-index:40;">
+  <div class="modal">
+    <h2 id="todoModalTitle">Nuevo pendiente</h2>
+    <div class="field"><label>Título</label><input type="text" id="todoTitleInput" maxlength="120" placeholder="Ej: Pedir turno con la fono"></div>
+    <div class="field"><label>Detalle</label><textarea id="todoDetailInput" rows="3" placeholder="Opcional"></textarea></div>
+    <div class="field"><label>Fecha</label><input type="date" id="todoDateInput"></div>
+    <div class="modal-actions">
+      <button class="btn btn-danger" id="todoDeleteBtn" style="display:none;">Borrar</button>
+      <button class="btn btn-secondary" id="todoCancelBtn">Cancelar</button>
+      <button class="btn btn-primary" id="todoSaveBtn">Guardar</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal: Ingresar PIN para desbloquear edición -->
+<div class="modal-overlay" id="pinModal" style="z-index:50;">
+  <div class="modal">
+    <h2>Ingresar PIN de edición</h2>
+    <p style="font-size:.85rem;color:var(--muted);text-align:center;margin-top:-6px;">Pedile el PIN a quien administra el calendario.</p>
+    <div class="field">
+      <input type="tel" id="pinInput" inputmode="numeric" maxlength="4" placeholder="••••" style="text-align:center;font-size:1.8rem;letter-spacing:.3em;">
+    </div>
+    <p id="pinError" style="color:#c0392b;font-size:.8rem;text-align:center;display:none;">PIN incorrecto, probá de nuevo.</p>
+    <div class="modal-actions">
+      <button class="btn btn-secondary" id="cancelPinBtn" style="width:100%;">Cancelar</button>
+      <button class="btn btn-primary" id="confirmPinBtn" style="width:100%;">Desbloquear</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal: Rango de fechas para exportar -->
+<div class="modal-overlay" id="exportRangeModal">
+  <div class="modal">
+    <h2 id="exportRangeTitle">Elegir rango a exportar</h2>
+    <div class="field-row">
+      <div class="field">
+        <label>Desde</label>
+        <input type="date" id="exportRangeStart">
+      </div>
+      <div class="field">
+        <label>Hasta</label>
+        <input type="date" id="exportRangeEnd">
+      </div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-secondary" id="cancelExportRangeBtn" style="width:100%;">Cancelar</button>
+      <button class="btn btn-primary" id="confirmExportRangeBtn" style="width:100%;">Exportar</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ---------- Datos locales (sin nube, sin cuentas) ----------
+// Todo vive en este dispositivo (localStorage). Para pasar datos a otro celular o no perderlos:
+// Más → "Respaldo de todos" y "Restaurar respaldo".
+const STORE_KEY = 'gurises_v1';
+const EMOJIS_HIJO = ['🧒','👧','👦','👶','🧑','🐣','🌈','⭐'];
+function leerStore(){
+  try{
+    const s = JSON.parse(localStorage.getItem(STORE_KEY) || 'null');
+    if(s && Array.isArray(s.hijos)) return s;
+  }catch(e){}
+  return { v:1, hijos:[], meta:{} };
+}
+let STORE = leerStore();
+if(!STORE.meta) STORE.meta = {};
+function guardarStore(){
+  try{ localStorage.setItem(STORE_KEY, JSON.stringify(STORE)); return true; }
+  catch(e){ console.error('No se pudo guardar:', e); return false; }
+}
+// Pide al navegador que no borre estos datos solo (por falta de espacio, por ejemplo).
+try{ if(navigator.storage && navigator.storage.persist) navigator.storage.persist(); }catch(e){}
+
+const urlParams = new URLSearchParams(window.location.search);
+let familiaId = urlParams.get('fam'); // id del hijo elegido
+function hijoActual(){ return STORE.hijos.find(h=>h.id===familiaId) || null; }
+function nombreHijo(){ const h = hijoActual(); return h ? h.nombre : 'Gurises'; }
+function nuevoIdHijo(nombre){
+  const base = (nombre||'hijo').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'').replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'') || 'hijo';
+  let id = base, n = 2;
+  while(STORE.hijos.some(h=>h.id===id)){ id = base + '-' + (n++); }
+  return id;
+}
+const PLANTILLAS_INICIALES = [
+  {id:'t1', title:'Colegio', start:'08:00', end:'12:00'},
+  {id:'t2', title:'Terapia', start:'15:00', end:'16:00'},
+  {id:'t3', title:'Actividad', start:'16:00', end:'17:00'}
+];
+function crearHijo(nombre, emoji){
+  const h = { id:nuevoIdHijo(nombre), nombre:nombre.trim(), emoji:emoji||'🧒',
+    events:[], careBlocks:[], templates:JSON.parse(JSON.stringify(PLANTILLAS_INICIALES)), todos:[], links:[], updatedAt:Date.now() };
+  STORE.hijos.push(h);
+  guardarStore();
+  return h;
+}
+let isReadOnly = false; // app personal: sin PIN ni modo lectura
+
+// ---------- Estado ----------
+let events = [];
+let careBlocks = [];
+let todos = []; // Pendientes: {id,title,detail,date,done,doneAt}
+let links = []; // Enlaces: {id,section('docs'|'clinica'),title,url,category,note,createdAt}
+let templates = JSON.parse(JSON.stringify(PLANTILLAS_INICIALES));
+let currentDate = new Date();
+let selectedDayStr = null;
+let showActivities = localStorage.getItem('cuidados_show_activities') !== 'false';
+
+// Guarda el estado del hijo actual en este dispositivo.
+async function persistAll(){
+  const h = hijoActual();
+  if(!h){ mostrarEstadoGuardado('❌ No se guardó: no hay un hijo seleccionado', true); return; }
+  Object.assign(h, { events, careBlocks, templates, todos, links, updatedAt: Date.now() });
+  if(guardarStore()){
+    mostrarEstadoGuardado('✓ Guardado');
+  }else{
+    mostrarEstadoGuardado('❌ No se pudo guardar', true);
+    alert('No se pudo guardar en este dispositivo (¿poco espacio?). Descargá un respaldo ahora desde Más → Respaldo de todos.');
+  }
+}
+
+function mostrarEstadoGuardado(msg, esError){
+  let el = document.getElementById('saveStatusToast');
+  if(!el){
+    el = document.createElement('div');
+    el.id = 'saveStatusToast';
+    el.style.cssText = 'position:fixed;bottom:14px;left:50%;transform:translateX(-50%);background:#2b2b2b;color:#fff;padding:8px 16px;border-radius:20px;font-size:.8rem;z-index:100;transition:opacity .3s;';
+    document.body.appendChild(el);
+  }
+  el.textContent = msg;
+  el.style.background = esError ? '#c0392b' : '#2b2b2b';
+  el.style.opacity = '1';
+  clearTimeout(el._hideTimer);
+  el._hideTimer = setTimeout(()=>{ el.style.opacity = '0'; }, esError ? 4000 : 1500);
+}
+
+function saveEvents(){ return persistAll(); }
+function saveCareBlocks(){ return persistAll(); }
+function saveTemplates(){ return persistAll(); }
+
+// Un evento (actividad) puede tener endDate (rango multi-día). Si no lo tiene, endDate = date.
+function eventEndDate(ev){ return ev.endDate || ev.date; }
+
+// ---------- Bloques de cuidado (fuente única de horas) ----------
+function toDateTime(dateStr, timeStr){
+  return new Date(dateStr+'T'+timeStr+':00');
+}
+// Horas de un bloque de cuidado que caen dentro de [rangeStartStr, rangeEndStr] (fechas YYYY-MM-DD, rango inclusive de días completos)
+function careBlockHoursInRange(cb, rangeStartStr, rangeEndStr){
+  const blockStart = toDateTime(cb.startDate, cb.startTime);
+  const blockEnd = toDateTime(cb.endDate, cb.endTime);
+  const rangeStart = toDateTime(rangeStartStr, '00:00');
+  const rangeEnd = toDateTime(rangeEndStr, '23:59');
+  const overlapStart = blockStart > rangeStart ? blockStart : rangeStart;
+  const overlapEnd = blockEnd < rangeEnd ? blockEnd : rangeEnd;
+  const ms = overlapEnd - overlapStart;
+  return ms > 0 ? ms/3600000 : 0;
+}
+// Bloques de cuidado que tocan un día dado (para pintar el fondo)
+function careBlocksForDay(dateStr){
+  const dayStart = toDateTime(dateStr, '00:00');
+  const dayEnd = toDateTime(dateStr, '23:59');
+  return careBlocks.filter(cb=>{
+    const bs = toDateTime(cb.startDate, cb.startTime);
+    const be = toDateTime(cb.endDate, cb.endTime);
+    return bs <= dayEnd && be >= dayStart;
+  });
+}
+
+// Horas reales de cuidado de una categoría (mama/papa) dentro de un rango de fechas,
+// usando la UNIÓN de los intervalos de esa categoría — así dos bloques solapados
+// (por ejemplo, uno cargado dos veces por error) no se cuentan doble.
+function categoryHoursInRange(category, rangeStartStr, rangeEndStr){
+  const rangeStart = toDateTime(rangeStartStr, '00:00');
+  const rangeEnd = toDateTime(rangeEndStr, '23:59');
+  const intervals = careBlocks
+    .filter(cb=>cb.category===category)
+    .map(cb=>{
+      const s = toDateTime(cb.startDate, cb.startTime);
+      const e = toDateTime(cb.endDate, cb.endTime);
+      return [Math.max(s, rangeStart), Math.min(e, rangeEnd)];
+    })
+    .filter(([s,e])=>e>s)
+    .sort((a,b)=>a[0]-b[0]);
+
+  let totalMs = 0, lastEnd = null;
+  intervals.forEach(([s,e])=>{
+    const effectiveStart = lastEnd===null ? s : (s > lastEnd ? s : lastEnd);
+    if(e > effectiveStart) totalMs += (e - effectiveStart);
+    lastEnd = lastEnd===null ? e : Math.max(lastEnd, e);
+  });
+  return totalMs / 3600000;
+}
+// Detecta si dentro de un día hay un cambio de cuidador (mamá->papá o viceversa) y a qué hora ocurre
+function dayHandoffTime(dateStr){
+  const blocks = careBlocksForDay(dateStr).slice().sort((a,b)=>{
+    return toDateTime(a.startDate,a.startTime) - toDateTime(b.startDate,b.startTime);
+  });
+  for(let i=1;i<blocks.length;i++){
+    if(blocks[i].category !== blocks[i-1].category){
+      const prevEnd = toDateTime(blocks[i-1].endDate, blocks[i-1].endTime);
+      const dayStart = toDateTime(dateStr,'00:00'), dayEnd = toDateTime(dateStr,'23:59');
+      if(prevEnd >= dayStart && prevEnd <= dayEnd){
+        return prevEnd.toTimeString().slice(0,5);
+      }
+    }
+  }
+  return null;
+}
+function dayCareCoverage(dateStr){
+  const blocks = careBlocksForDay(dateStr);
+  const cats = new Set(blocks.map(b=>b.category));
+  const dayStart = toDateTime(dateStr,'00:00');
+  const dayEnd = toDateTime(dateStr,'23:59');
+  let coveredMs = 0;
+  // unión simple de intervalos (suficiente para uso normal, sin miles de bloques superpuestos)
+  const intervals = blocks.map(b=>{
+    const s = toDateTime(b.startDate,b.startTime);
+    const e = toDateTime(b.endDate,b.endTime);
+    return [Math.max(s,dayStart), Math.min(e,dayEnd)];
+  }).sort((a,b)=>a[0]-b[0]);
+  let lastEnd = null;
+  intervals.forEach(([s,e])=>{
+    if(lastEnd===null || s>lastEnd) coveredMs += (e-Math.max(s,lastEnd||s));
+    else coveredMs += Math.max(0, e-lastEnd);
+    lastEnd = lastEnd===null? e : Math.max(lastEnd,e);
+  });
+  const totalMs = dayEnd - dayStart;
+  const hasGap = coveredMs < totalMs - 60000; // margen de 1 min
+
+  // Categoría vigente al principio (00:00) y al final (23:59) del día,
+  // para pintar el día en dos mitades que dan sensación de continuidad
+  // con el día anterior/siguiente en vez de un patrón diagonal fijo.
+  let catStart = null, catEnd = null;
+  blocks.forEach(b=>{
+    const s = toDateTime(b.startDate,b.startTime);
+    const e = toDateTime(b.endDate,b.endTime);
+    if(s <= dayStart && e > dayStart) catStart = b.category;
+    if(s < dayEnd && e >= dayEnd) catEnd = b.category;
+  });
+  // Si ningún bloque cubre exactamente el borde (por huecos), usamos el primero/último que exista ese día
+  if(!catStart && intervals.length>0) catStart = blocks[0].category;
+  if(!catEnd && blocks.length>0) catEnd = blocks[blocks.length-1].category;
+
+  return {cats, hasGap, hasBlocks: blocks.length>0, catStart, catEnd};
+}
+
+// Devuelve true si dateStr cae dentro del rango [ev.date, ev.endDate] del evento
+function eventCoversDate(ev, dateStr){
+  return dateStr >= ev.date && dateStr <= eventEndDate(ev);
+}
+// Detecta si un evento se solapa con un rango de fechas [rangeStart, rangeEnd]
+function eventCoversAnyDateInRange(ev, rangeStart, rangeEnd){
+  return ev.date <= rangeEnd && eventEndDate(ev) >= rangeStart;
+}
+
+function uid(){
+  return 'e_' + Date.now() + '_' + Math.random().toString(36).slice(2,8);
+}
+
+function fmtDateStr(d){
+  const y=d.getFullYear(), m=String(d.getMonth()+1).padStart(2,'0'), day=String(d.getDate()).padStart(2,'0');
+  return `${y}-${m}-${day}`;
+}
+
+function hoursBetween(start,end){
+  const [sh,sm] = start.split(':').map(Number);
+  const [eh,em] = end.split(':').map(Number);
+  let mins = (eh*60+em) - (sh*60+sm);
+  if(mins < 0) mins += 24*60; // cruza medianoche
+  return mins/60;
+}
+
+// ---------- Render calendario ----------
+const monthLabel = document.getElementById('monthLabel');
+const daysGrid = document.getElementById('daysGrid');
+
+function renderCalendar(){
+  const year = currentDate.getFullYear();
+  const month = currentDate.getMonth();
+  monthLabel.textContent = currentDate.toLocaleDateString('es-ES', {month:'long', year:'numeric'});
+
+  const firstDay = new Date(year, month, 1);
+  const startOffset = firstDay.getDay();
+  const gridStart = new Date(year, month, 1 - startOffset);
+
+  daysGrid.innerHTML = '';
+  const todayStr = fmtDateStr(new Date());
+
+  for(let i=0;i<42;i++){
+    const cellDate = new Date(gridStart);
+    cellDate.setDate(gridStart.getDate()+i);
+    const cellStr = fmtDateStr(cellDate);
+    const isOtherMonth = cellDate.getMonth() !== month;
+
+    const cell = document.createElement('div');
+    let coverageClass = '';
+    const coverage = dayCareCoverage(cellStr);
+    const isSplit = coverage.cats.has('mama') && coverage.cats.has('papa');
+    if(isSplit) coverageClass = ' care-split';
+    else if(coverage.cats.has('mama')) coverageClass = ' care-mama';
+    else if(coverage.cats.has('papa')) coverageClass = ' care-papa';
+    const gapClass = coverage.hasGap ? ' care-gap' : '';
+    cell.className = 'day-cell' + (isOtherMonth?' other-month':'') + (cellStr===todayStr?' today':'') + coverageClass + gapClass;
+    cell.dataset.date = cellStr;
+
+    if(isSplit){
+      // Mitad izquierda = color de quien tenía el cuidado al empezar el día (continúa del día anterior),
+      // mitad derecha = color de quien lo tiene al terminar (continúa hacia el día siguiente).
+      const colorStart = coverage.catStart==='mama' ? 'rgba(224,87,140,.16)' : 'rgba(59,125,219,.16)';
+      const colorEnd = coverage.catEnd==='mama' ? 'rgba(224,87,140,.16)' : 'rgba(59,125,219,.16)';
+      cell.style.background = `linear-gradient(90deg, ${colorStart} 50%, ${colorEnd} 50%)`;
+    }
+
+    const num = document.createElement('div');
+    num.className = 'day-num';
+    num.textContent = cellDate.getDate();
+    cell.appendChild(num);
+
+    const mini = document.createElement('div');
+    mini.className = 'events-mini';
+
+    if(showActivities){
+      const dayEvents = events.filter(e=>eventCoversDate(e,cellStr)).sort((a,b)=>a.start.localeCompare(b.start));
+      dayEvents.slice(0,3).forEach(ev=>{
+        const chip = document.createElement('div');
+        chip.className = 'event-chip ' + ev.category;
+        chip.textContent = ev.title;
+        mini.appendChild(chip);
+      });
+      if(dayEvents.length>3){
+        const more = document.createElement('div');
+        more.className = 'event-chip otro';
+        more.textContent = `+${dayEvents.length-3} más`;
+        mini.appendChild(more);
+      }
+    }
+
+    // Mostrar hora de cambio de cuidador aunque las actividades estén ocultas
+    const handoff = dayHandoffTime(cellStr);
+    if(handoff){
+      const chip = document.createElement('div');
+      chip.className = 'event-chip handoff';
+      chip.textContent = '🔄 ' + handoff;
+      mini.appendChild(chip);
+    }
+
+    cell.appendChild(mini);
+    cell.addEventListener('click', ()=>{
+      if(copyMode) handleCopyClick(cellStr);
+      else openDayModal(cellStr);
+    });
+    daysGrid.appendChild(cell);
+  }
+
+  renderSummary();
+  // Si estamos en vista semana, renderizarla también
+  if(typeof viewMode !== 'undefined' && viewMode==='week') renderWeekView();
+}
+
+// ---------- Resumen de horas ----------
+function getWeekRange(d){
+  const day = d.getDay();
+  const start = new Date(d);
+  start.setDate(d.getDate()-day);
+  const end = new Date(start);
+  end.setDate(start.getDate()+6);
+  return [fmtDateStr(start), fmtDateStr(end)];
+}
+
+function renderSummary(){
+  const today = new Date();
+  const viewingCurrentMonth = fmtDateStr(currentDate).slice(0,7) === fmtDateStr(today).slice(0,7);
+  const weekRefDate = viewingCurrentMonth ? today : currentDate;
+  const [weekStart, weekEnd] = getWeekRange(weekRefDate);
+  const monthStr = fmtDateStr(currentDate).slice(0,7);
+  const monthStart = monthStr+'-01';
+  const monthEndD = new Date(currentDate.getFullYear(), currentDate.getMonth()+1, 0);
+  const monthEnd = fmtDateStr(monthEndD);
+
+  const weekMama = categoryHoursInRange('mama', weekStart, weekEnd);
+  const weekPapa = categoryHoursInRange('papa', weekStart, weekEnd);
+  const monthMama = categoryHoursInRange('mama', monthStart, monthEnd);
+  const monthPapa = categoryHoursInRange('papa', monthStart, monthEnd);
+
+  document.getElementById('weekSummaryLabel').textContent = viewingCurrentMonth ? 'Esta semana' : 'Primera semana del mes';
+  document.getElementById('monthSummaryLabel').textContent = viewingCurrentMonth ? 'Este mes' : currentDate.toLocaleDateString('es-ES',{month:'long'});
+  document.getElementById('weekMama').textContent = weekMama.toFixed(1)+'h';
+  document.getElementById('weekPapa').textContent = weekPapa.toFixed(1)+'h';
+  document.getElementById('monthMama').textContent = monthMama.toFixed(1)+'h';
+  document.getElementById('monthPapa').textContent = monthPapa.toFixed(1)+'h';
+
+  const weekDiff = weekMama - weekPapa;
+  const monthDiff = monthMama - monthPapa;
+  document.getElementById('weekDiff').textContent = weekDiff===0 ? 'Parejo' : `${Math.abs(weekDiff).toFixed(1)}h más ${weekDiff>0?'Mamá':'Papá'}`;
+  document.getElementById('monthDiff').textContent = monthDiff===0 ? 'Parejo' : `${Math.abs(monthDiff).toFixed(1)}h más ${monthDiff>0?'Mamá':'Papá'}`;
+
+  // Validación de cobertura inline — sin botón
+  const daysInMonth = monthEndD.getDate();
+  const totalHoursMonth = daysInMonth * 24;
+  const sumaCargada = monthMama + monthPapa;
+  const exceso = sumaCargada - totalHoursMonth;
+
+  let diasSinBloque = 0;
+  for(let d=1; d<=daysInMonth; d++){
+    const pad = n=>String(n).padStart(2,'0');
+    const ds = `${currentDate.getFullYear()}-${pad(currentDate.getMonth()+1)}-${pad(d)}`;
+    if(careBlocksForDay(ds).length===0) diasSinBloque++;
+  }
+
+  const coverageEl = document.getElementById('monthCoverage');
+  if(exceso > 1){ // margen de 1h para evitar falsos positivos por redondeo
+    coverageEl.innerHTML = `<span style="color:#c0392b;">⚠️ Exceso de ${exceso.toFixed(1)}h — hay superposiciones</span>`;
+  } else if(diasSinBloque > 0){
+    coverageEl.innerHTML = `<span style="color:#856404;">📅 ${diasSinBloque} día${diasSinBloque>1?'s':''} sin cobertura</span>`;
+  } else if(sumaCargada === 0){
+    coverageEl.innerHTML = '';
+  } else {
+    coverageEl.innerHTML = `<span style="color:#1e8449;">✅ Cobertura coherente</span>`;
+  }
+}
+
+// ---------- Modal de día ----------
+const dayModal = document.getElementById('dayModal');
+const dayEventsList = document.getElementById('dayEventsList');
+const dayModalTitle = document.getElementById('dayModalTitle');
+
+function openDayModal(dateStr){
+  selectedDayStr = dateStr;
+  const d = new Date(dateStr+'T00:00:00');
+  dayModalTitle.textContent = d.toLocaleDateString('es-ES', {weekday:'long', day:'numeric', month:'long'});
+
+  dayEventsList.innerHTML = '';
+
+  const coverage = dayCareCoverage(dateStr);
+  const cbBlocks = careBlocksForDay(dateStr);
+  if(cbBlocks.length>0){
+    const cbHeader = document.createElement('div');
+    cbHeader.style.cssText = 'font-size:.75rem;color:var(--muted);font-weight:600;margin-top:4px;';
+    cbHeader.textContent = coverage.hasGap ? '🏠 Cuidado (⚠ hay horas sin asignar este día)' : '🏠 Cuidado';
+    dayEventsList.appendChild(cbHeader);
+    cbBlocks.forEach(cb=>{
+      const catLabel = cb.category==='mama'?'👩 Mamá':'👨 Papá';
+      const item = document.createElement('div');
+      item.className = 'day-event-item ' + cb.category;
+      item.innerHTML = `
+        <div class="info">
+          <b>${catLabel}</b>
+          <span>${cb.startDate} ${cb.startTime} → ${cb.endDate} ${cb.endTime}</span>
+        </div>
+        <button class="small-btn" data-id="${cb.id}">✏️</button>
+      `;
+      item.querySelector('button').addEventListener('click', ()=>{
+        dayModal.classList.remove('open');
+        openCareBlockModal(cb);
+      });
+      dayEventsList.appendChild(item);
+    });
+  } else {
+    const warn = document.createElement('div');
+    warn.style.cssText = 'font-size:.78rem;color:var(--accent);margin-bottom:4px;';
+    warn.textContent = '⚠ Este día no tiene bloque de cuidado asignado.';
+    dayEventsList.appendChild(warn);
+  }
+
+  const actHeader = document.createElement('div');
+  actHeader.style.cssText = 'font-size:.75rem;color:var(--muted);font-weight:600;margin-top:10px;';
+  actHeader.textContent = '📌 Actividades';
+  dayEventsList.appendChild(actHeader);
+
+  const dayEvents = events.filter(e=>eventCoversDate(e,dateStr)).sort((a,b)=>a.start.localeCompare(b.start));
+  if(dayEvents.length===0){
+    const empty = document.createElement('div');
+    empty.className = 'empty-hint';
+    empty.textContent = 'Sin actividades este día';
+    dayEventsList.appendChild(empty);
+  }
+  dayEvents.forEach(ev=>{
+    const item = document.createElement('div');
+    item.className = 'day-event-item actividad';
+    const rangeLabel = ev.endDate && ev.endDate!==ev.date ? ` (${ev.date} a ${ev.endDate})` : '';
+    item.innerHTML = `
+      <div class="info">
+        <b>${escapeHtml(ev.title)}</b>
+        <span>${ev.start} - ${ev.end}${rangeLabel}</span>
+      </div>
+      <button class="small-btn" data-id="${ev.id}">✏️</button>
+    `;
+    item.querySelector('button').addEventListener('click', ()=>{
+      dayModal.classList.remove('open');
+      openEventModal(ev);
+    });
+    dayEventsList.appendChild(item);
+  });
+
+  dayModal.classList.add('open');
+}
+
+function escapeHtml(str){
+  const div = document.createElement('div');
+  div.textContent = str;
+  return div.innerHTML;
+}
+
+document.getElementById('closeDayModal').addEventListener('click', ()=>dayModal.classList.remove('open'));
+document.getElementById('addFromDayBtn').addEventListener('click', ()=>{
+  dayModal.classList.remove('open');
+  openEventModal(null, selectedDayStr);
+});
+document.getElementById('addCareFromDayBtn').addEventListener('click', ()=>{
+  dayModal.classList.remove('open');
+  openCareBlockModal(null, selectedDayStr);
+});
+
+// ---------- Modal de evento ----------
+const eventModal = document.getElementById('eventModal');
+const eventModalTitle = document.getElementById('eventModalTitle');
+
+function openEventModal(ev, presetDate){
+  document.getElementById('editEventId').value = ev ? ev.id : '';
+  eventModalTitle.textContent = ev ? 'Editar actividad' : 'Nueva actividad';
+  document.getElementById('eventTitle').value = ev ? ev.title : '';
+  document.getElementById('eventDate').value = ev ? ev.date : (presetDate || fmtDateStr(new Date()));
+  document.getElementById('eventStart').value = ev ? ev.start : '08:00';
+  document.getElementById('eventEnd').value = ev ? ev.end : '09:00';
+  document.getElementById('eventNotes').value = ev ? (ev.notes||'') : '';
+  document.getElementById('repeatToggle').checked = false;
+  document.getElementById('repeatOptions').classList.remove('open');
+  document.getElementById('deleteEventBtn').style.display = ev ? 'block' : 'none';
+
+  const isMultiDay = ev && ev.endDate && ev.endDate !== ev.date;
+  document.getElementById('multiDayToggle').checked = !!isMultiDay;
+  document.getElementById('eventEndDateField').style.display = isMultiDay ? 'block' : 'none';
+  document.getElementById('eventEndDate').value = isMultiDay ? ev.endDate : '';
+  document.getElementById('eventStartLabel').textContent = isMultiDay ? 'Hora inicio (día 1)' : 'Hora inicio';
+  document.getElementById('eventEndLabel').textContent = isMultiDay ? 'Hora fin (último día)' : 'Hora fin';
+
+  renderTemplatesRow();
+  eventModal.classList.add('open');
+}
+
+function renderTemplatesRow(){
+  const row = document.getElementById('templatesRow');
+  row.innerHTML = '';
+  if(templates.length===0){
+    row.innerHTML = '<span style="font-size:.78rem;color:var(--muted);">No hay plantillas. Creá una en ⚙️ Plantillas.</span>';
+    return;
+  }
+  templates.forEach(t=>{
+    const b = document.createElement('button');
+    b.type = 'button';
+    b.className = 'cat-btn';
+    b.style.flex = 'none';
+    b.style.fontSize = '.78rem';
+    b.style.padding = '6px 10px';
+    b.textContent = t.title;
+    b.addEventListener('click', ()=>{
+      document.getElementById('eventTitle').value = t.title;
+      document.getElementById('eventStart').value = t.start;
+      document.getElementById('eventEnd').value = t.end;
+    });
+    row.appendChild(b);
+  });
+}
+
+document.getElementById('multiDayToggle').addEventListener('change', (e)=>{
+  const on = e.target.checked;
+  document.getElementById('eventEndDateField').style.display = on ? 'block' : 'none';
+  document.getElementById('eventStartLabel').textContent = on ? 'Hora inicio (día 1)' : 'Hora inicio';
+  document.getElementById('eventEndLabel').textContent = on ? 'Hora fin (último día)' : 'Hora fin';
+});
+
+
+document.getElementById('repeatToggle').addEventListener('change', (e)=>{
+  document.getElementById('repeatOptions').classList.toggle('open', e.target.checked);
+});
+
+document.getElementById('cancelEventBtn').addEventListener('click', ()=>eventModal.classList.remove('open'));
+
+document.getElementById('addEventFab').addEventListener('click', ()=>openEventModal(null, fmtDateStr(currentDate)));
+
+// ---------- Bloques de cuidado ----------
+const careBlockModal = document.getElementById('careBlockModal');
+let selectedCareCategory = null;
+
+function openCareBlockModal(cb, presetDate){
+  selectedCareCategory = cb ? cb.category : null;
+  document.getElementById('editCareBlockId').value = cb ? cb.id : '';
+  document.getElementById('careBlockModalTitle').textContent = cb ? 'Editar bloque de cuidado' : 'Nuevo bloque de cuidado';
+  document.getElementById('careStartDate').value = cb ? cb.startDate : (presetDate || fmtDateStr(new Date()));
+  document.getElementById('careStartTime').value = cb ? cb.startTime : '08:00';
+  document.getElementById('careEndDate').value = cb ? cb.endDate : (presetDate || fmtDateStr(new Date()));
+  document.getElementById('careEndTime').value = cb ? cb.endTime : '20:00';
+  document.getElementById('deleteCareBlockBtn').style.display = cb ? 'block' : 'none';
+  document.getElementById('careRepeatToggle').checked = false;
+  document.getElementById('careRepeatOptions').classList.remove('open');
+  const alreadyInSeries = !!(cb && cb.seriesId);
+  document.getElementById('careRepeatRow').style.display = alreadyInSeries ? 'none' : 'flex';
+  document.querySelectorAll('.care-cat-btn').forEach(b=>{
+    b.classList.remove('sel-mama','sel-papa');
+    if(cb && b.dataset.cat===cb.category) b.classList.add('sel-'+cb.category);
+  });
+  careBlockModal.classList.add('open');
+}
+
+document.getElementById('careRepeatToggle').addEventListener('change', (e)=>{
+  document.getElementById('careRepeatOptions').classList.toggle('open', e.target.checked);
+});
+
+document.getElementById('addCareBlockFab').addEventListener('click', ()=>openCareBlockModal(null, fmtDateStr(currentDate)));
+
+document.querySelectorAll('.care-cat-btn').forEach(btn=>{
+  btn.addEventListener('click', ()=>{
+    selectedCareCategory = btn.dataset.cat;
+    document.querySelectorAll('.care-cat-btn').forEach(b=>b.classList.remove('sel-mama','sel-papa'));
+    btn.classList.add('sel-'+selectedCareCategory);
+  });
+});
+
+document.getElementById('cancelCareBlockBtn').addEventListener('click', ()=>careBlockModal.classList.remove('open'));
+
+document.getElementById('saveCareBlockBtn').addEventListener('click', async ()=>{
+  const id = document.getElementById('editCareBlockId').value;
+  const startDate = document.getElementById('careStartDate').value;
+  const startTime = document.getElementById('careStartTime').value;
+  const endDate = document.getElementById('careEndDate').value;
+  const endTime = document.getElementById('careEndTime').value;
+
+  if(!selectedCareCategory){ alert('Elegí quién cuida en este bloque.'); return; }
+  if(!startDate || !endDate){ alert('Completá las fechas.'); return; }
+  const start = toDateTime(startDate,startTime), end = toDateTime(endDate,endTime);
+  if(end <= start){ alert('La fecha/hora de fin debe ser posterior al inicio.'); return; }
+
+  const repeatChecked = document.getElementById('careRepeatToggle').checked;
+
+  if(id){
+    const cb = careBlocks.find(c=>c.id===id);
+    if(cb.seriesId){
+      const scope = confirm('Este bloque es parte de una repetición.\n\nAceptar = aplicar cambios a TODOS los bloques de la serie.\nCancelar = aplicar solo a este bloque.');
+      if(scope){
+        const spanMs = toDateTime(endDate,endTime) - toDateTime(startDate,startTime);
+        careBlocks.filter(c=>c.seriesId===cb.seriesId).forEach(c=>{
+          // desplazamiento respecto al bloque editado, preservando el patrón de días entre ocurrencias
+          const offsetMs = toDateTime(c.startDate,c.startTime) - start;
+          const newStart = new Date(start.getTime()+offsetMs);
+          const newEnd = new Date(newStart.getTime()+spanMs);
+          c.startDate = fmtDateStr(newStart); c.startTime = startTime;
+          c.endDate = fmtDateStr(newEnd); c.endTime = endTime;
+          c.category = selectedCareCategory;
+        });
+      } else {
+        Object.assign(cb, {startDate,startTime,endDate,endTime,category:selectedCareCategory,seriesId:null});
+      }
+    } else if(repeatChecked){
+      // El bloque no era parte de una serie, pero ahora se pide repetirlo: generar la serie a partir de este bloque
+      const freq = document.getElementById('careRepeatFreq').value;
+      const until = document.getElementById('careRepeatUntil').value;
+      if(!until){ alert('Elegí hasta cuándo repetir.'); return; }
+      const seriesId = uid();
+      const spanMs = end - start;
+      const step = freq==='biweekly'?14:7;
+      const untilD = new Date(until+'T23:59:59');
+      // Actualizar el bloque editado como primera ocurrencia de la serie
+      Object.assign(cb, {startDate,startTime,endDate,endTime,category:selectedCareCategory,seriesId});
+      let occStart = new Date(start);
+      occStart.setDate(occStart.getDate()+step);
+      while(occStart <= untilD){
+        const occEnd = new Date(occStart.getTime()+spanMs);
+        careBlocks.push({
+          id:uid(), seriesId,
+          startDate:fmtDateStr(occStart), startTime,
+          endDate:fmtDateStr(occEnd), endTime,
+          category:selectedCareCategory
+        });
+        occStart.setDate(occStart.getDate()+step);
+      }
+    } else {
+      Object.assign(cb, {startDate,startTime,endDate,endTime,category:selectedCareCategory});
+    }
+  } else {
+    const repeat = repeatChecked;
+    if(repeat){
+      const freq = document.getElementById('careRepeatFreq').value;
+      const until = document.getElementById('careRepeatUntil').value;
+      if(!until){ alert('Elegí hasta cuándo repetir.'); return; }
+      const seriesId = uid();
+      const spanMs = end - start;
+      const step = freq==='biweekly'?14:7;
+      const untilD = new Date(until+'T23:59:59');
+      let occStart = new Date(start);
+      while(occStart <= untilD){
+        const occEnd = new Date(occStart.getTime()+spanMs);
+        careBlocks.push({
+          id:uid(), seriesId,
+          startDate:fmtDateStr(occStart), startTime,
+          endDate:fmtDateStr(occEnd), endTime,
+          category:selectedCareCategory
+        });
+        occStart.setDate(occStart.getDate()+step);
+      }
+    } else {
+      careBlocks.push({id:uid(), startDate,startTime,endDate,endTime,category:selectedCareCategory});
+    }
+  }
+  await saveCareBlocks();
+  careBlockModal.classList.remove('open');
+  renderCalendar();
+});
+
+document.getElementById('deleteCareBlockBtn').addEventListener('click', async ()=>{
+  const id = document.getElementById('editCareBlockId').value;
+  const cb = careBlocks.find(c=>c.id===id);
+  if(!cb) return;
+  if(cb.seriesId){
+    const scope = confirm('Este bloque es parte de una repetición.\n\nAceptar = eliminar TODOS los bloques de la serie.\nCancelar = eliminar solo este bloque.');
+    if(scope){
+      if(!confirm('¿Confirmás eliminar toda la serie?')) return;
+      careBlocks = careBlocks.filter(c=>c.seriesId!==cb.seriesId);
+    } else {
+      if(!confirm('¿Eliminar este bloque?')) return;
+      careBlocks = careBlocks.filter(c=>c.id!==id);
+    }
+  } else {
+    if(!confirm('¿Eliminar este bloque de cuidado?')) return;
+    careBlocks = careBlocks.filter(c=>c.id!==id);
+  }
+  await saveCareBlocks();
+  careBlockModal.classList.remove('open');
+  dayModal.classList.remove('open');
+  renderCalendar();
+});
+
+document.getElementById('saveEventBtn').addEventListener('click', async ()=>{
+  const id = document.getElementById('editEventId').value;
+  const title = document.getElementById('eventTitle').value.trim();
+  const date = document.getElementById('eventDate').value;
+  const isMultiDay = document.getElementById('multiDayToggle').checked;
+  const endDate = isMultiDay ? document.getElementById('eventEndDate').value : date;
+  const start = document.getElementById('eventStart').value;
+  const end = document.getElementById('eventEnd').value;
+  const notes = document.getElementById('eventNotes').value.trim();
+  const category = 'actividad';
+
+  if(!title || !date){
+    alert('Completá título y fecha.');
+    return;
+  }
+  if(isMultiDay && (!endDate || endDate < date)){
+    alert('La fecha "hasta" debe ser posterior a la fecha de inicio.');
+    return;
+  }
+
+  if(id){
+    const ev = events.find(e=>e.id===id);
+    if(ev.seriesId){
+      const scope = confirm('Este evento es parte de una repetición.\n\nAceptar = aplicar cambios a TODOS los eventos de la serie.\nCancelar = aplicar solo a este evento.');
+      if(scope){
+        const origDate = ev.date, origEndDate = eventEndDate(ev);
+        const spanDays = Math.round((new Date(origEndDate)-new Date(origDate))/86400000);
+        events.filter(e=>e.seriesId===ev.seriesId).forEach(e=>{
+          const newEnd = new Date(e.date+'T00:00:00');
+          newEnd.setDate(newEnd.getDate()+spanDays);
+          Object.assign(e, {title,start,end,notes,category,endDate:fmtDateStr(newEnd)});
+        });
+      } else {
+        Object.assign(ev, {title,date,endDate,start,end,notes,category,seriesId:null});
+      }
+    } else {
+      Object.assign(ev, {title,date,endDate,start,end,notes,category});
+    }
+  } else {
+    const repeat = document.getElementById('repeatToggle').checked;
+    if(repeat){
+      const freq = document.getElementById('repeatFreq').value;
+      const until = document.getElementById('repeatUntil').value;
+      if(!until){ alert('Elegí hasta cuándo repetir.'); return; }
+      const seriesId = uid();
+      const spanDays = Math.round((new Date(endDate)-new Date(date))/86400000);
+      let d = new Date(date+'T00:00:00');
+      const untilD = new Date(until+'T00:00:00');
+      const step = freq==='daily'?1:freq==='biweekly'?14:7;
+      while(d <= untilD){
+        const occEnd = new Date(d);
+        occEnd.setDate(occEnd.getDate()+spanDays);
+        events.push({id:uid(),seriesId,title,date:fmtDateStr(d),endDate:fmtDateStr(occEnd),start,end,notes,category});
+        d.setDate(d.getDate()+step);
+      }
+    } else {
+      events.push({id:uid(),title,date,endDate,start,end,notes,category});
+    }
+  }
+
+  await saveEvents();
+  eventModal.classList.remove('open');
+  renderCalendar();
+});
+
+document.getElementById('deleteEventBtn').addEventListener('click', async ()=>{
+  const id = document.getElementById('editEventId').value;
+  const ev = events.find(e=>e.id===id);
+  if(!ev) return;
+  if(ev.seriesId){
+    const scope = confirm('Este evento es parte de una repetición.\n\nAceptar = eliminar TODOS los eventos de la serie.\nCancelar = eliminar solo este evento.');
+    if(scope){
+      if(!confirm('¿Confirmás eliminar toda la serie repetida?')) return;
+      events = events.filter(e=>e.seriesId!==ev.seriesId);
+    } else {
+      if(!confirm('¿Eliminar este evento?')) return;
+      events = events.filter(e=>e.id!==id);
+    }
+  } else {
+    if(!confirm('¿Eliminar este evento?')) return;
+    events = events.filter(e=>e.id!==id);
+  }
+  await saveEvents();
+  eventModal.classList.remove('open');
+  dayModal.classList.remove('open');
+  renderCalendar();
+});
+
+// ---------- Navegación de mes ----------
+document.getElementById('prevMonth').addEventListener('click', ()=>{
+  if(viewMode === 'week'){
+    currentDate.setDate(currentDate.getDate()-7);
+  } else {
+    currentDate.setMonth(currentDate.getMonth()-1);
+  }
+  renderCalendar();
+});
+document.getElementById('nextMonth').addEventListener('click', ()=>{
+  if(viewMode === 'week'){
+    currentDate.setDate(currentDate.getDate()+7);
+  } else {
+    currentDate.setMonth(currentDate.getMonth()+1);
+  }
+  renderCalendar();
+});
+
+// ---------- Vista semanal ----------
+let viewMode = 'month'; // 'month' | 'week'
+
+function getWeekDays(d){
+  const day = d.getDay();
+  const monday = new Date(d);
+  monday.setDate(d.getDate() - ((day+6)%7)); // semana lun-dom
+  return Array.from({length:7}, (_,i)=>{
+    const dd = new Date(monday);
+    dd.setDate(monday.getDate()+i);
+    return dd;
+  });
+}
+
+function renderWeekView(){
+  const weekView = document.getElementById('weekView');
+  const days = getWeekDays(currentDate);
+  const todayStr = fmtDateStr(new Date());
+  const DAY_NAMES = ['Dom','Lun','Mar','Mié','Jue','Vie','Sáb'];
+
+  // Actualizar label del mes en header
+  const first = days[0], last = days[6];
+  const sameMonth = first.getMonth()===last.getMonth();
+  monthLabel.textContent = sameMonth
+    ? `${first.toLocaleDateString('es-ES',{day:'numeric'})} – ${last.toLocaleDateString('es-ES',{day:'numeric', month:'long', year:'numeric'})}`
+    : `${first.toLocaleDateString('es-ES',{day:'numeric',month:'short'})} – ${last.toLocaleDateString('es-ES',{day:'numeric',month:'short',year:'numeric'})}`;
+
+  weekView.innerHTML = '';
+  const grid = document.createElement('div');
+  grid.className = 'week-view-grid';
+
+  days.forEach(d=>{
+    const ds = fmtDateStr(d);
+    const coverage = dayCareCoverage(ds);
+    const blocks = careBlocksForDay(ds).sort((a,b)=>toDateTime(a.startDate,a.startTime)-toDateTime(b.startDate,b.startTime));
+    const dayEvs = events.filter(e=>eventCoversDate(e,ds)).sort((a,b)=>a.start.localeCompare(b.start));
+    const isSplit = coverage.cats.has('mama') && coverage.cats.has('papa');
+
+    const row = document.createElement('div');
+    let careClass = isSplit ? ' care-split' : coverage.cats.has('mama') ? ' care-mama' : coverage.cats.has('papa') ? ' care-papa' : '';
+    row.className = 'week-day-row' + careClass + (ds===todayStr?' today-row':'');
+    row.dataset.date = ds;
+
+    // Header: nombre día + fecha
+    const hdr = document.createElement('div');
+    hdr.className = 'week-day-header';
+    const nameEl = document.createElement('span');
+    nameEl.className = 'week-day-name';
+    nameEl.textContent = DAY_NAMES[d.getDay()] + (ds===todayStr?' ← Hoy':'');
+    const dateEl = document.createElement('span');
+    dateEl.className = 'week-day-date';
+    dateEl.textContent = d.toLocaleDateString('es-AR',{day:'numeric',month:'short'});
+    hdr.appendChild(nameEl); hdr.appendChild(dateEl);
+    row.appendChild(hdr);
+
+    // Barra visual de cuidado (24h = 100%)
+    if(blocks.length>0){
+      const bar = document.createElement('div');
+      bar.className = 'week-care-bar';
+      const dayStartMs = toDateTime(ds,'00:00').getTime();
+      const dayTotalMs = 24*3600*1000;
+      let lastPct = 0;
+      blocks.forEach(cb=>{
+        const bStart = Math.max(toDateTime(cb.startDate,cb.startTime).getTime(), dayStartMs);
+        const bEnd = Math.min(toDateTime(cb.endDate,cb.endTime).getTime(), dayStartMs+dayTotalMs);
+        const startPct = (bStart-dayStartMs)/dayTotalMs*100;
+        const endPct = (bEnd-dayStartMs)/dayTotalMs*100;
+        if(startPct > lastPct){
+          const gap = document.createElement('div');
+          gap.className='week-care-seg gap';
+          gap.style.width=(startPct-lastPct)+'%';
+          bar.appendChild(gap);
+        }
+        const seg = document.createElement('div');
+        seg.className='week-care-seg '+cb.category;
+        seg.style.width=(endPct-startPct)+'%';
+        seg.title=`${cb.category==='mama'?'Mamá':'Papá'} ${cb.startTime}–${cb.endTime}`;
+        bar.appendChild(seg);
+        lastPct = endPct;
+      });
+      if(lastPct<100){
+        const gap = document.createElement('div');
+        gap.className='week-care-seg gap';
+        gap.style.width=(100-lastPct)+'%';
+        bar.appendChild(gap);
+      }
+      row.appendChild(bar);
+
+      // Horas del día
+      const mamaH = categoryHoursInRange('mama', ds, ds);
+      const papaH = categoryHoursInRange('papa', ds, ds);
+      const hoursRow = document.createElement('div');
+      hoursRow.className = 'week-hours-row';
+      hoursRow.textContent = `Mamá ${mamaH.toFixed(1)}h · Papá ${papaH.toFixed(1)}h`;
+      row.appendChild(hoursRow);
+    } else {
+      const nocare = document.createElement('div');
+      nocare.style.cssText = 'font-size:.72rem;color:var(--accent);margin-top:2px;';
+      nocare.textContent = '⚠ Sin cuidado asignado';
+      row.appendChild(nocare);
+    }
+
+    // Chips de eventos
+    if(showActivities && dayEvs.length>0){
+      const evRow = document.createElement('div');
+      evRow.className = 'week-events-list';
+      dayEvs.slice(0,4).forEach(ev=>{
+        const chip = document.createElement('span');
+        chip.className = 'week-event-chip';
+        chip.textContent = `${ev.start} ${ev.title}`;
+        evRow.appendChild(chip);
+      });
+      if(dayEvs.length>4){
+        const more = document.createElement('span');
+        more.className = 'week-event-chip';
+        more.textContent = `+${dayEvs.length-4}`;
+        evRow.appendChild(more);
+      }
+      row.appendChild(evRow);
+    }
+
+    row.addEventListener('click', ()=>openDayModal(ds));
+    if(copyMode) row.addEventListener('click', (e)=>{ e.stopPropagation(); handleCopyClick(ds); }, true);
+    grid.appendChild(row);
+  });
+
+  weekView.appendChild(grid);
+  renderSummary();
+}
+
+document.getElementById('viewToggleBtn').addEventListener('click', ()=>{
+  viewMode = viewMode==='month' ? 'week' : 'month';
+  document.getElementById('viewToggleBtn').textContent = viewMode==='month' ? '📅 Vista semana' : '🗓️ Vista mes';
+  document.getElementById('calendarView').style.display = viewMode==='month' ? '' : 'none';
+  document.getElementById('weekView').style.display = viewMode==='week' ? '' : 'none';
+  renderCalendar();
+});
+
+// ---------- Modo copia ----------
+let copyMode = false;
+let copySource = null;   // { type: 'day'|'week'|'month', dateStr, weekDays:[], monthStr }
+
+function enterCopyMode(){
+  copyMode = true;
+  copySource = null;
+  document.getElementById('copyBanner').style.display = 'block';
+  document.getElementById('copySourceLabel').textContent = 'Seleccioná tipo de origen y luego tocá el día en el calendario';
+  document.getElementById('copyPasteBtn').style.display = 'none';
+  document.getElementById('copyModeBtn').style.background = '#e67e22';
+  document.getElementById('copyModeBtn').style.color = '#fff';
+}
+
+function exitCopyMode(){
+  copyMode = false;
+  copySource = null;
+  document.getElementById('copyBanner').style.display = 'none';
+  document.getElementById('copyModeBtn').style.background = '';
+  document.getElementById('copyModeBtn').style.color = '';
+  // limpiar resaltados
+  document.querySelectorAll('.copy-origin,.copy-dest-hover').forEach(el=>el.classList.remove('copy-origin','copy-dest-hover'));
+  renderCalendar();
+}
+
+let copySelectType = 'day'; // tipo seleccionado (antes de clickear origen)
+['Day','Week','Month'].forEach(t=>{
+  document.getElementById(`copySelect${t}Btn`).addEventListener('click', ()=>{
+    copySelectType = t.toLowerCase();
+    ['Day','Week','Month'].forEach(tt=>{
+      document.getElementById(`copySelect${tt}Btn`).style.background = '';
+    });
+    document.getElementById(`copySelect${t}Btn`).style.background = 'rgba(255,255,255,.5)';
+    if(copySource){
+      // resetear origen si cambia el tipo
+      copySource = null;
+      document.getElementById('copyPasteBtn').style.display = 'none';
+      document.getElementById('copySourceLabel').textContent = 'Ahora tocá el origen en el calendario';
+    } else {
+      document.getElementById('copySourceLabel').textContent = 'Ahora tocá el origen en el calendario';
+    }
+  });
+});
+
+document.getElementById('copyCancelBtn').addEventListener('click', exitCopyMode);
+document.getElementById('copyModeBtn').addEventListener('click', ()=>{
+  if(copyMode) exitCopyMode();
+  else enterCopyMode();
+});
+
+function handleCopyClick(dateStr){
+  if(!copySource){
+    // Definir origen
+    if(copySelectType==='day'){
+      copySource = { type:'day', dateStr };
+      document.getElementById('copySourceLabel').textContent = `Origen: ${dateStr}. Ahora tocá el destino (día de llegada).`;
+    } else if(copySelectType==='week'){
+      const days = getWeekDays(new Date(dateStr+'T12:00:00'));
+      copySource = { type:'week', dateStr, weekDays: days.map(fmtDateStr) };
+      document.getElementById('copySourceLabel').textContent = `Origen: semana del ${copySource.weekDays[0]}. Tocá el lunes destino.`;
+    } else {
+      const ms = dateStr.slice(0,7);
+      copySource = { type:'month', dateStr, monthStr: ms };
+      document.getElementById('copySourceLabel').textContent = `Origen: mes ${ms}. Tocá cualquier día del mes destino.`;
+    }
+    document.getElementById('copyPasteBtn').style.display = 'inline-block';
+    document.getElementById('copyPasteBtn').onclick = null; // limpiamos por si había algo
+    // highlight origen
+    document.querySelectorAll('.day-cell').forEach(el=>{
+      el.classList.remove('copy-origin');
+      if(el.dataset.date===dateStr) el.classList.add('copy-origin');
+    });
+  } else {
+    // Destino seleccionado: pegar
+    pasteCareTo(dateStr);
+  }
+}
+
+// Botón manual "Pegar aquí" — usa el último día tocado o pide click
+document.getElementById('copyPasteBtn').addEventListener('click', ()=>{
+  if(!copySource){
+    alert('Primero seleccioná el origen en el calendario.');
+  }
+  // El pegado ocurre con el click en el día destino; este botón es visual/guía
+});
+
+async function pasteCareTo(destDateStr){
+  if(!copySource) return;
+  const src = copySource;
+  let newBlocks = [];
+
+  let newEvents = [];
+
+  if(src.type==='day'){
+    const srcBlocks = careBlocksForDay(src.dateStr);
+    const srcEvents = events.filter(ev=> ev.date === src.dateStr || (ev.endDate && ev.date <= src.dateStr && ev.endDate >= src.dateStr));
+    if(srcBlocks.length===0 && srcEvents.length===0){ alert('El día origen no tiene bloques ni actividades.'); return; }
+    newBlocks = srcBlocks.map(cb=>({ id:uid(), startDate:destDateStr, startTime:cb.startTime, endDate:destDateStr, endTime:cb.endTime, category:cb.category }));
+    newEvents = srcEvents.map(ev=>({ ...ev, id:uid(), date:destDateStr, endDate: ev.endDate ? destDateStr : undefined }));
+    if(!confirm(`Pegar del ${src.dateStr} al ${destDateStr}?\n${newBlocks.length} bloque(s) + ${newEvents.length} actividad(es). Se agregan sin reemplazar.`)) return;
+
+  } else if(src.type==='week'){
+    const srcStart = new Date(src.weekDays[0]+'T12:00:00');
+    const destWeekDays = getWeekDays(new Date(destDateStr+'T12:00:00')).map(fmtDateStr);
+    const offsetDays = Math.round((new Date(destWeekDays[0]+'T12:00:00') - srcStart)/86400000);
+    const shiftDs = ds=>{ const d=new Date(ds+'T12:00:00'); d.setDate(d.getDate()+offsetDays); return fmtDateStr(d); };
+    const srcAllBlocks = src.weekDays.flatMap(ds=>careBlocksForDay(ds));
+    const srcAllEvents = events.filter(ev=> src.weekDays.includes(ev.date));
+    if(srcAllBlocks.length===0 && srcAllEvents.length===0){ alert('La semana origen no tiene bloques ni actividades.'); return; }
+    newBlocks = srcAllBlocks.map(cb=>({ id:uid(), startDate:shiftDs(cb.startDate), startTime:cb.startTime, endDate:shiftDs(cb.endDate), endTime:cb.endTime, category:cb.category }));
+    newEvents = srcAllEvents.map(ev=>({ ...ev, id:uid(), date:shiftDs(ev.date), endDate: ev.endDate ? shiftDs(ev.endDate) : undefined }));
+    if(!confirm(`Pegar semana ${src.weekDays[0]} → ${destWeekDays[0]}?\n${newBlocks.length} bloque(s) + ${newEvents.length} actividad(es).`)) return;
+
+  } else {
+    const srcMs = src.monthStr;
+    const destMs = destDateStr.slice(0,7);
+    if(srcMs===destMs){ alert('El origen y destino son el mismo mes.'); return; }
+    const [srcY,srcM] = srcMs.split('-').map(Number);
+    const [dstY,dstM] = destMs.split('-').map(Number);
+    function shiftDate(ds){
+      const [y,m,d] = ds.split('-').map(Number);
+      let nm = m+(dstM-srcM), ny = y+(dstY-srcY);
+      const nd = Math.min(d, new Date(ny, nm, 0).getDate());
+      return `${String(ny).padStart(4,'0')}-${String(nm).padStart(2,'0')}-${String(nd).padStart(2,'0')}`;
+    }
+    const srcMonthBlocks = careBlocks.filter(cb=>cb.startDate.startsWith(srcMs));
+    const srcMonthEvents = events.filter(ev=>ev.date.startsWith(srcMs));
+    if(srcMonthBlocks.length===0 && srcMonthEvents.length===0){ alert('El mes origen no tiene bloques ni actividades.'); return; }
+    newBlocks = srcMonthBlocks.map(cb=>({ id:uid(), startDate:shiftDate(cb.startDate), startTime:cb.startTime, endDate:shiftDate(cb.endDate), endTime:cb.endTime, category:cb.category }));
+    newEvents = srcMonthEvents.map(ev=>({ ...ev, id:uid(), date:shiftDate(ev.date), endDate: ev.endDate ? shiftDate(ev.endDate) : undefined }));
+    if(!confirm(`Pegar mes ${srcMs} → ${destMs}?\n${newBlocks.length} bloque(s) + ${newEvents.length} actividad(es).`)) return;
+  }
+
+  careBlocks.push(...newBlocks);
+  events.push(...newEvents);
+  await persistAll();
+  exitCopyMode();
+  renderCalendar();
+  alert(`✅ Copiados: ${newBlocks.length} bloque(s) y ${newEvents.length} actividad(es).`);
+}
+
+// ---------- Exportar PDF ----------
+// Agrupa los bloques de cuidado ordenados cronológicamente en tramos legibles
+// (fusiona bloques consecutivos y contiguos del mismo padre en un solo tramo,
+// como pediría un informe para uso judicial: "de lunes X hs a martes Y hs: Papá").
+function buildCareNarrative(rangeStart, rangeEnd){
+  const rs = toDateTime(rangeStart, '00:00'), re = toDateTime(rangeEnd, '23:59');
+  const sorted = careBlocks
+    .map(cb=>({
+      cat: cb.category,
+      start: toDateTime(cb.startDate, cb.startTime),
+      end: toDateTime(cb.endDate, cb.endTime)
+    }))
+    .map(b=>({ cat:b.cat, start: b.start<rs?rs:b.start, end: b.end>re?re:b.end }))
+    .filter(b=>b.end>b.start)
+    .sort((a,b)=>a.start-b.start);
+
+  // Fusionar tramos contiguos/superpuestos de la misma categoría
+  const merged = [];
+  sorted.forEach(b=>{
+    const last = merged[merged.length-1];
+    if(last && last.cat===b.cat && b.start <= last.end){
+      if(b.end > last.end) last.end = b.end;
+    } else {
+      merged.push({cat:b.cat, start:b.start, end:b.end});
+    }
+  });
+
+  const diasSemana = ['domingo','lunes','martes','miércoles','jueves','viernes','sábado'];
+  const fmt = (d)=>`${diasSemana[d.getDay()]} ${String(d.getDate()).padStart(2,'0')}/${String(d.getMonth()+1).padStart(2,'0')} a las ${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`;
+
+  return merged.map(m=>{
+    const who = m.cat==='mama' ? 'Progenitora' : 'Progenitor';
+    return `De ${fmt(m.start)} a ${fmt(m.end)}: ${who}`;
+  });
+}
+
+function generatePdf(rangeStart, rangeEnd){
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF();
+  const rangeLabelTitle = rangeStart===rangeEnd ? rangeStart : `${rangeStart} a ${rangeEnd}`;
+  const pageWidth = doc.internal.pageSize.getWidth();
+
+  // ---------- Encabezado ----------
+  doc.setFontSize(17);
+  doc.setTextColor(40,40,40);
+  doc.text('Registro de cuidado compartido', 14, 18);
+  doc.setFontSize(10);
+  doc.setTextColor(120,120,120);
+  doc.text(`Período: ${rangeLabelTitle}  ·  Generado el ${fmtDateStr(new Date())}`, 14, 25);
+
+  // ---------- Calendario visual (grilla tipo mes) ----------
+  const startD = new Date(rangeStart+'T00:00:00');
+  const endD = new Date(rangeEnd+'T00:00:00');
+  let cursor = new Date(startD.getFullYear(), startD.getMonth(), 1);
+  let firstCalendar = true;
+  let finalY = 30;
+
+  while(cursor <= endD){
+    const year = cursor.getFullYear(), month = cursor.getMonth();
+    const monthLabel = cursor.toLocaleDateString('es-ES', {month:'long', year:'numeric'});
+    const firstDay = new Date(year, month, 1);
+    const startOffset = firstDay.getDay();
+    const gridStart = new Date(year, month, 1 - startOffset);
+
+    if(!firstCalendar){ doc.addPage(); finalY = 20; }
+    firstCalendar = false;
+
+    doc.setFontSize(12);
+    doc.setTextColor(40,40,40);
+    doc.text(monthLabel.charAt(0).toUpperCase()+monthLabel.slice(1), 14, finalY);
+    finalY += 4;
+
+    const headRow = [['Dom','Lun','Mar','Mié','Jue','Vie','Sáb']];
+    const bodyRows = [];
+    const cellColors = [];
+    for(let w=0; w<6; w++){
+      const row = [];
+      const rowColors = [];
+      for(let d=0; d<7; d++){
+        const cellDate = new Date(gridStart);
+        cellDate.setDate(gridStart.getDate() + w*7 + d);
+        const inMonth = cellDate.getMonth()===month;
+        const cellStr = fmtDateStr(cellDate);
+        if(!inMonth){ row.push(''); rowColors.push(null); continue; }
+        const cov = dayCareCoverage(cellStr);
+        let colorHex = null;
+        if(cov.cats.has('mama') && cov.cats.has('papa')) colorHex = [255,235,240];
+        else if(cov.cats.has('mama')) colorHex = [252,220,232];
+        else if(cov.cats.has('papa')) colorHex = [220,232,250];
+        row.push(String(cellDate.getDate()));
+        rowColors.push(colorHex);
+      }
+      bodyRows.push(row);
+      cellColors.push(rowColors);
+    }
+
+    doc.autoTable({
+      startY: finalY,
+      head: headRow,
+      body: bodyRows,
+      theme: 'grid',
+      styles: { fontSize: 9, halign: 'center', cellPadding: 3, minCellHeight: 10 },
+      headStyles: { fillColor: [230,225,215], textColor: [80,80,80] },
+      didParseCell: (data)=>{
+        if(data.section==='body'){
+          const color = cellColors[data.row.index][data.column.index];
+          if(color) data.cell.styles.fillColor = color;
+        }
+      },
+      margin: { left: 14, right: 14 }
+    });
+    finalY = doc.lastAutoTable.finalY + 6;
+
+    cursor = new Date(year, month+1, 1);
+  }
+
+  // Leyenda de colores
+  doc.setFontSize(8.5);
+  doc.setFillColor(252,220,232); doc.rect(14, finalY, 4, 4, 'F');
+  doc.setTextColor(80,80,80); doc.text('Progenitora', 20, finalY+3.5);
+  doc.setFillColor(220,232,250); doc.rect(60, finalY, 4, 4, 'F');
+  doc.text('Progenitor', 66, finalY+3.5);
+  doc.setFillColor(255,235,240); doc.rect(100, finalY, 4, 4, 'F');
+  doc.text('Ambos (cambio de turno ese día)', 106, finalY+3.5);
+  finalY += 10;
+
+  // ---------- Detalle en texto de los tramos de cuidado ----------
+  if(finalY > 250){ doc.addPage(); finalY = 20; }
+  doc.setFontSize(12);
+  doc.setTextColor(40,40,40);
+  doc.text('Detalle de tramos de cuidado', 14, finalY);
+  finalY += 3;
+
+  const narrative = buildCareNarrative(rangeStart, rangeEnd);
+  doc.setFontSize(9.5);
+  doc.setTextColor(60,60,60);
+  if(narrative.length===0){
+    doc.text('No hay bloques de cuidado cargados en este período.', 14, finalY+6);
+    finalY += 10;
+  } else {
+    doc.autoTable({
+      startY: finalY + 4,
+      head: [['Tramo de cuidado']],
+      body: narrative.map(n=>[n]),
+      theme: 'striped',
+      styles: { fontSize: 9, cellPadding: 3 },
+      headStyles: { fillColor: [201,98,42], textColor: [255,255,255] },
+      margin: { left: 14, right: 14 }
+    });
+    finalY = doc.lastAutoTable.finalY + 8;
+  }
+
+  // ---------- Resumen de horas por semana ----------
+  if(finalY > 250){ doc.addPage(); finalY = 20; }
+  doc.setFontSize(12);
+  doc.setTextColor(40,40,40);
+  doc.text('Horas totales por semana', 14, finalY);
+  finalY += 3;
+
+  const weekRows = [];
+  let wCursor = new Date(rangeStart+'T00:00:00');
+  wCursor.setDate(wCursor.getDate() - wCursor.getDay()); // retrocede al domingo
+  const rangeEndDate = new Date(rangeEnd+'T00:00:00');
+  while(wCursor <= rangeEndDate){
+    const wStart = fmtDateStr(wCursor);
+    const wEndDate = new Date(wCursor); wEndDate.setDate(wEndDate.getDate()+6);
+    const wEnd = fmtDateStr(wEndDate);
+    const hMama = categoryHoursInRange('mama', wStart, wEnd);
+    const hPapa = categoryHoursInRange('papa', wStart, wEnd);
+    if(hMama>0 || hPapa>0){
+      weekRows.push([`${wStart} a ${wEnd}`, hMama.toFixed(1)+' h', hPapa.toFixed(1)+' h']);
+    }
+    wCursor.setDate(wCursor.getDate()+7);
+  }
+
+  doc.autoTable({
+    startY: finalY + 4,
+    head: [['Semana', 'Progenitora', 'Progenitor']],
+    body: weekRows.length ? weekRows : [['Sin datos', '0.0 h', '0.0 h']],
+    theme: 'grid',
+    styles: { fontSize: 9.5, cellPadding: 4, halign: 'center' },
+    columnStyles: { 0: { halign: 'left' } },
+    headStyles: { fillColor: [59,90,110], textColor: [255,255,255] },
+    margin: { left: 14, right: 14 }
+  });
+  finalY = doc.lastAutoTable.finalY + 8;
+
+  // ---------- Resumen total del período ----------
+  if(finalY > 260){ doc.addPage(); finalY = 20; }
+  const totalMama = categoryHoursInRange('mama', rangeStart, rangeEnd);
+  const totalPapa = categoryHoursInRange('papa', rangeStart, rangeEnd);
+  const totalHoras = totalMama + totalPapa;
+  const pctMama = totalHoras>0 ? (totalMama/totalHoras*100) : 0;
+  const pctPapa = totalHoras>0 ? (totalPapa/totalHoras*100) : 0;
+
+  doc.autoTable({
+    startY: finalY,
+    head: [['Total del período', 'Horas', '% del período']],
+    body: [
+      ['Progenitora', totalMama.toFixed(1)+' h', pctMama.toFixed(0)+'%'],
+      ['Progenitor', totalPapa.toFixed(1)+' h', pctPapa.toFixed(0)+'%'],
+    ],
+    theme: 'grid',
+    styles: { fontSize: 10, cellPadding: 4, halign: 'center', fontStyle: 'bold' },
+    columnStyles: { 0: { halign: 'left' } },
+    headStyles: { fillColor: [201,98,42], textColor: [255,255,255] },
+    margin: { left: 14, right: 14 }
+  });
+  finalY = doc.lastAutoTable.finalY + 10;
+
+  // ---------- Nota metodológica ----------
+  if(finalY > 260){ doc.addPage(); finalY = 20; }
+  doc.setFontSize(8);
+  doc.setTextColor(130,130,130);
+  const nota = doc.splitTextToSize(
+    'Este informe se generó automáticamente a partir de los registros cargados en la aplicación ' +
+    '"Cuidados" por los progenitores. Cada tramo indica el horario exacto de inicio y fin del ' +
+    'cuidado a cargo de cada parte. Las horas totales se calculan sumando el tiempo efectivo de ' +
+    'cuidado de cada progenitor, sin superposición ni doble conteo entre bloques.',
+    pageWidth - 28
+  );
+  doc.text(nota, 14, finalY);
+
+  doc.save(`cuidados_${rangeStart}_a_${rangeEnd}.pdf`);
+}
+
+let pendingExportType = null;
+
+function openExportRangeModal(type){
+  pendingExportType = type;
+  document.getElementById('exportRangeTitle').textContent = type==='pdf' ? 'Rango para exportar PDF' : 'Rango para exportar .ics';
+  const monthStart = fmtDateStr(new Date(currentDate.getFullYear(), currentDate.getMonth(), 1));
+  const monthEnd = fmtDateStr(new Date(currentDate.getFullYear(), currentDate.getMonth()+1, 0));
+  document.getElementById('exportRangeStart').value = monthStart;
+  document.getElementById('exportRangeEnd').value = monthEnd;
+  document.getElementById('exportRangeModal').classList.add('open');
+}
+
+document.getElementById('exportPdfBtn').addEventListener('click', ()=>openExportRangeModal('pdf'));
+document.getElementById('exportIcsBtn').addEventListener('click', ()=>openExportRangeModal('ics'));
+
+document.getElementById('cancelExportRangeBtn').addEventListener('click', ()=>{
+  document.getElementById('exportRangeModal').classList.remove('open');
+});
+
+document.getElementById('confirmExportRangeBtn').addEventListener('click', ()=>{
+  const rangeStart = document.getElementById('exportRangeStart').value;
+  const rangeEnd = document.getElementById('exportRangeEnd').value;
+  if(!rangeStart || !rangeEnd){ alert('Completá ambas fechas.'); return; }
+  if(rangeEnd < rangeStart){ alert('La fecha "hasta" debe ser posterior a "desde".'); return; }
+  document.getElementById('exportRangeModal').classList.remove('open');
+  if(pendingExportType==='pdf') generatePdf(rangeStart, rangeEnd);
+  else if(pendingExportType==='ics') generateIcsForRange(rangeStart, rangeEnd);
+});
+
+// ---------- Gestión de plantillas ----------
+const templatesModal = document.getElementById('templatesModal');
+const templateFormModal = document.getElementById('templateFormModal');
+
+document.getElementById('manageTemplatesBtn').addEventListener('click', ()=>{
+  renderTemplatesList();
+  templatesModal.classList.add('open');
+});
+document.getElementById('closeTemplatesModal').addEventListener('click', ()=>templatesModal.classList.remove('open'));
+
+let editingTplId = null;
+
+function renderTemplatesList(){
+  const list = document.getElementById('templatesList');
+  list.innerHTML = '';
+  if(templates.length===0){
+    list.innerHTML = '<div class="empty-hint">No hay plantillas todavía</div>';
+    return;
+  }
+  templates.forEach(t=>{
+    const item = document.createElement('div');
+    item.className = 'day-event-item actividad';
+    const noteLine = t.note ? `<br><span style="color:var(--muted);">${escapeHtml(t.note)}</span>` : '';
+    item.innerHTML = `
+      <div class="info">
+        <b>${escapeHtml(t.title)}</b>
+        <span>${t.start} - ${t.end}${noteLine}</span>
+      </div>
+      <div>
+        <button class="small-btn" data-action="edit" data-id="${t.id}">✏️</button>
+        <button class="small-btn" data-action="del" data-id="${t.id}">🗑️</button>
+      </div>
+    `;
+    item.querySelector('[data-action="edit"]').addEventListener('click', ()=>openTemplateForm(t));
+    item.querySelector('[data-action="del"]').addEventListener('click', async ()=>{
+      if(confirm('¿Eliminar esta plantilla?')){
+        templates = templates.filter(x=>x.id!==t.id);
+        await saveTemplates();
+        renderTemplatesList();
+      }
+    });
+    list.appendChild(item);
+  });
+}
+
+function openTemplateForm(t){
+  editingTplId = t ? t.id : null;
+  document.getElementById('tplTitle').value = t ? t.title : '';
+  document.getElementById('tplStart').value = t ? t.start : '09:00';
+  document.getElementById('tplEnd').value = t ? t.end : '10:00';
+  document.getElementById('tplNote').value = t ? (t.note||'') : '';
+  document.querySelector('#templateFormModal h2').textContent = t ? 'Editar plantilla' : 'Nueva plantilla';
+  templatesModal.classList.remove('open');
+  templateFormModal.classList.add('open');
+}
+
+document.getElementById('addTemplateBtn').addEventListener('click', ()=>openTemplateForm(null));
+
+document.getElementById('cancelTplBtn').addEventListener('click', ()=>{
+  templateFormModal.classList.remove('open');
+  templatesModal.classList.add('open');
+});
+
+document.getElementById('saveTplBtn').addEventListener('click', async ()=>{
+  const title = document.getElementById('tplTitle').value.trim();
+  const start = document.getElementById('tplStart').value;
+  const end = document.getElementById('tplEnd').value;
+  const note = document.getElementById('tplNote').value.trim();
+  if(!title){
+    alert('Completá el título.');
+    return;
+  }
+  if(editingTplId){
+    const t = templates.find(x=>x.id===editingTplId);
+    Object.assign(t, {title, start, end, note});
+  } else {
+    templates.push({id:uid(), title, start, end, note});
+  }
+  await saveTemplates();
+  editingTplId = null;
+  templateFormModal.classList.remove('open');
+  templatesModal.classList.add('open');
+  renderTemplatesList();
+});
+
+// ---------- Exportar a formato .ics (estándar, importable en Google/Apple/Outlook) ----------
+function icsDateTime(dateStr, timeStr){
+  // dateStr: YYYY-MM-DD, timeStr: HH:MM  -> YYYYMMDDTHHMMSS (hora local)
+  const [y,m,d] = dateStr.split('-');
+  const [h,min] = timeStr.split(':');
+  return `${y}${m}${d}T${h}${min}00`;
+}
+function icsEscapeText(str){
+  return String(str).replace(/\\/g,'\\\\').replace(/;/g,'\\;').replace(/,/g,'\\,').replace(/\n/g,'\\n');
+}
+
+function buildIcs(evsToExport, cbsToExport){
+  const lines = [
+    'BEGIN:VCALENDAR',
+    'VERSION:2.0',
+    'PRODID:-//Cuidados//ES',
+    'CALSCALE:GREGORIAN'
+  ];
+  const now = new Date();
+  const dtstamp = icsDateTime(fmtDateStr(now), now.toTimeString().slice(0,5));
+
+  (evsToExport||[]).forEach(ev=>{
+    lines.push('BEGIN:VEVENT');
+    lines.push('UID:' + ev.id + '@cuidados');
+    lines.push('DTSTAMP:' + dtstamp);
+    lines.push('DTSTART:' + icsDateTime(ev.date, ev.start));
+    lines.push('DTEND:' + icsDateTime(eventEndDate(ev), ev.end));
+    lines.push('SUMMARY:' + icsEscapeText(ev.title));
+    if(ev.notes) lines.push('DESCRIPTION:' + icsEscapeText(ev.notes));
+    lines.push('END:VEVENT');
+  });
+
+  (cbsToExport||[]).forEach(cb=>{
+    const catLabel = cb.category==='mama'?'Mamá':'Papá';
+    lines.push('BEGIN:VEVENT');
+    lines.push('UID:' + cb.id + '@cuidados-bloque');
+    lines.push('DTSTAMP:' + dtstamp);
+    lines.push('DTSTART:' + icsDateTime(cb.startDate, cb.startTime));
+    lines.push('DTEND:' + icsDateTime(cb.endDate, cb.endTime));
+    lines.push('SUMMARY:' + icsEscapeText(`Cuidado: ${catLabel}`));
+    lines.push('END:VEVENT');
+  });
+
+  lines.push('END:VCALENDAR');
+  return lines.join('\r\n');
+}
+
+function downloadIcs(evsToExport, cbsToExport, filename){
+  const ics = buildIcs(evsToExport, cbsToExport);
+  const blob = new Blob([ics], {type:'text/calendar;charset=utf-8'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = filename;
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+function generateIcsForRange(rangeStart, rangeEnd){
+  const rangeEvents = events.filter(e=>eventCoversAnyDateInRange(e, rangeStart, rangeEnd));
+  const rangeCareBlocks = careBlocks.filter(cb=>careBlockHoursInRange(cb, rangeStart, rangeEnd) > 0);
+  if(rangeEvents.length===0 && rangeCareBlocks.length===0){
+    alert('No hay nada en ese rango para exportar.');
+    return;
+  }
+  downloadIcs(rangeEvents, rangeCareBlocks, `cuidados_${rangeStart}_a_${rangeEnd}.ics`);
+}
+
+// ---------- Exportar / importar propuesta ----------
+document.getElementById('backupTodoBtn').addEventListener('click', exportarTodo);
+document.getElementById('exportProposalBtn').addEventListener('click', ()=>{
+  const payload = {
+    tipo: 'propuesta_cuidados_v2',
+    generado: new Date().toISOString(),
+    eventos: events,
+    bloques: careBlocks,
+    plantillas: templates,
+    pendientes: todos,
+    enlaces: links
+  };
+  const blob = new Blob([JSON.stringify(payload, null, 2)], {type:'application/json'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  const fechaStr = fmtDateStr(new Date());
+  a.download = `respaldo_gurises_${fechaStr}.json`;
+  a.click();
+  URL.revokeObjectURL(url);
+});
+
+document.getElementById('deleteMonthBtn').addEventListener('click', async ()=>{
+  const monthStr = fmtDateStr(currentDate).slice(0,7);
+  const monthLabelTxt = currentDate.toLocaleDateString('es-ES', {month:'long', year:'numeric'});
+  const monthRangeStart = `${monthStr}-01`;
+  const monthRangeEnd = fmtDateStr(new Date(currentDate.getFullYear(), currentDate.getMonth()+1, 0));
+
+  const evsToDelete = events.filter(e=>eventCoversAnyDateInRange(e, monthRangeStart, monthRangeEnd));
+  const cbsToDelete = careBlocks.filter(cb=>careBlockHoursInRange(cb, monthRangeStart, monthRangeEnd) > 0);
+
+  if(evsToDelete.length===0 && cbsToDelete.length===0){
+    alert(`No hay nada cargado en ${monthLabelTxt} para borrar.`);
+    document.getElementById('moreOptionsMenu').style.display = 'none';
+    return;
+  }
+
+  const confirmMsg = `Vas a borrar de ${monthLabelTxt}:\n\n`
+    + `• ${evsToDelete.length} actividad(es)\n`
+    + `• ${cbsToDelete.length} bloque(s) de cuidado\n\n`
+    + `Esto no se puede deshacer. Te recomendamos exportar un respaldo antes.\n\n`
+    + `¿Confirmás borrar igual?`;
+  if(!confirm(confirmMsg)) return;
+  if(!confirm('Última confirmación: ¿SEGURO que querés borrar todo ese mes?')) return;
+
+  const evIdsToDelete = new Set(evsToDelete.map(e=>e.id));
+  const cbIdsToDelete = new Set(cbsToDelete.map(cb=>cb.id));
+  events = events.filter(e=>!evIdsToDelete.has(e.id));
+  careBlocks = careBlocks.filter(cb=>!cbIdsToDelete.has(cb.id));
+
+  await persistAll();
+  renderCalendar();
+  document.getElementById('moreOptionsMenu').style.display = 'none';
+  alert(`${monthLabelTxt} fue borrado.`);
+});
+
+document.getElementById('importProposalBtn').addEventListener('click', ()=>{
+  document.getElementById('importFileInput').click();
+});
+
+let pendingProposalEvents = [];
+let pendingProposalBlocks = [];
+let pendingProposalTemplates = [];
+
+document.getElementById('importFileInput').addEventListener('change', (e)=>{
+  const file = e.target.files[0];
+  if(!file) return;
+  const reader = new FileReader();
+  reader.onload = (evt)=>{
+    try{
+      const data = JSON.parse(evt.target.result);
+      const evs = data.eventos || [];
+      const blocks = data.bloques || [];
+      const tpls = data.plantillas || [];
+      if(evs.length===0 && blocks.length===0){
+        alert('El archivo no tiene eventos ni bloques válidos.');
+        return;
+      }
+      pendingProposalEvents = evs;
+      pendingProposalBlocks = blocks;
+      pendingProposalTemplates = tpls;
+      document.getElementById('proposalCount').textContent = `${evs.length} actividades, ${blocks.length} bloques de cuidado`;
+      const preview = document.getElementById('proposalPreview');
+      const evLines = evs.slice(0,8).map(ev=>`<div>📌 ${ev.date} ${ev.start}-${ev.end} ${escapeHtml(ev.title||'')}</div>`);
+      const cbLines = blocks.slice(0,8).map(cb=>{
+        const who = cb.category==='mama'?'Mamá':'Papá';
+        return `<div>🏠 ${cb.startDate} ${cb.startTime} → ${cb.endDate} ${cb.endTime} (${who})</div>`;
+      });
+      preview.innerHTML = [...evLines, ...cbLines].join('') || '<div>Sin detalle para mostrar</div>';
+      document.getElementById('proposalModal').classList.add('open');
+    }catch(err){
+      alert('No se pudo leer el archivo. ¿Es un JSON de Cuidados válido?');
+    }
+  };
+  reader.readAsText(file);
+  e.target.value = '';
+});
+
+document.getElementById('cancelProposalBtn').addEventListener('click', ()=>{
+  document.getElementById('proposalModal').classList.remove('open');
+  pendingProposalEvents = [];
+  pendingProposalBlocks = [];
+  pendingProposalTemplates = [];
+});
+
+// Huellas de contenido para detectar duplicados al importar (no por id, que siempre es nuevo)
+function eventFingerprint(ev){
+  return [ev.date, ev.endDate||ev.date, ev.start, ev.end, (ev.title||'').trim().toLowerCase()].join('|');
+}
+function careBlockFingerprint(cb){
+  return [cb.startDate, cb.startTime, cb.endDate||cb.startDate, cb.endTime, cb.category].join('|');
+}
+
+document.getElementById('mergeProposalBtn').addEventListener('click', async ()=>{
+  const existingEventFingerprints = new Set(events.map(eventFingerprint));
+  const existingBlockFingerprints = new Set(careBlocks.map(careBlockFingerprint));
+  let skippedEvents = 0, skippedBlocks = 0;
+
+  pendingProposalEvents.forEach(ev=>{
+    const candidate = {
+      id: uid(),
+      title: ev.title || 'Evento importado',
+      date: ev.date,
+      endDate: ev.endDate || ev.date,
+      start: ev.start || '00:00',
+      end: ev.end || '00:00',
+      notes: ev.notes || '',
+      category: 'actividad'
+    };
+    const fp = eventFingerprint(candidate);
+    if(existingEventFingerprints.has(fp)){ skippedEvents++; return; }
+    existingEventFingerprints.add(fp);
+    events.push(candidate);
+  });
+  pendingProposalBlocks.forEach(cb=>{
+    const candidate = {
+      id: uid(),
+      startDate: cb.startDate,
+      startTime: cb.startTime || '00:00',
+      endDate: cb.endDate || cb.startDate,
+      endTime: cb.endTime || '00:00',
+      category: cb.category === 'papa' ? 'papa' : 'mama'
+    };
+    const fp = careBlockFingerprint(candidate);
+    if(existingBlockFingerprints.has(fp)){ skippedBlocks++; return; }
+    existingBlockFingerprints.add(fp);
+    careBlocks.push(candidate);
+  });
+  // Plantillas: solo agregamos las que no existan ya (por título) para no duplicar
+  pendingProposalTemplates.forEach(t=>{
+    if(!templates.some(existing=>existing.title===t.title)){
+      templates.push({id: uid(), title: t.title, start: t.start||'09:00', end: t.end||'10:00'});
+    }
+  });
+  document.getElementById('mergeProposalBtn').textContent = 'Guardando...';
+  document.getElementById('mergeProposalBtn').disabled = true;
+  await persistAll();
+  document.getElementById('mergeProposalBtn').textContent = 'Agregar a mi calendario';
+  document.getElementById('mergeProposalBtn').disabled = false;
+  document.getElementById('proposalModal').classList.remove('open');
+  pendingProposalEvents = [];
+  pendingProposalBlocks = [];
+  pendingProposalTemplates = [];
+  renderCalendar();
+  const skipMsg = (skippedEvents>0 || skippedBlocks>0)
+    ? `\n\n(Se omitieron ${skippedEvents} actividad(es) y ${skippedBlocks} bloque(s) que ya estaban cargados, para no duplicar.)`
+    : '';
+  alert('Datos importados.' + skipMsg);
+});
+
+document.getElementById('toggleActivitiesBtn').addEventListener('click', ()=>{
+  showActivities = !showActivities;
+  localStorage.setItem('cuidados_show_activities', showActivities);
+  document.getElementById('toggleActivitiesBtn').textContent = showActivities ? '👁️ Ocultar actividades' : '🙈 Mostrar actividades';
+  renderCalendar();
+});
+
+// ---------- Init ----------
+function renderTodayBanner(){
+  const banner = document.getElementById('todayBanner');
+  const todayStr = fmtDateStr(new Date());
+  const blocks = careBlocksForDay(todayStr).slice().sort((a,b)=> toDateTime(a.startDate,a.startTime)-toDateTime(b.startDate,b.startTime));
+  const dayEvents = events.filter(e=>eventCoversDate(e,todayStr)).sort((a,b)=>a.start.localeCompare(b.start));
+
+  if(blocks.length===0 && dayEvents.length===0){
+    banner.style.display = 'none';
+    return;
+  }
+
+  let lines = [];
+  blocks.forEach(cb=>{
+    const who = cb.category==='mama' ? 'Mamá' : 'Papá';
+    lines.push(`Hoy tiene a ${who} de ${cb.startTime} a ${cb.endTime}`);
+  });
+  const handoff = dayHandoffTime(todayStr);
+  if(handoff){
+    lines.push(`🔄 Hoy hay cambio de cuidador a las ${handoff}`);
+  }
+  if(dayEvents.length>0){
+    const actList = dayEvents.map(e=>`${e.title} (${e.start}-${e.end})`).join(', ');
+    lines.push(`Actividades: ${actList}`);
+  }
+
+  // Determinar color del banner según quién tiene el cuidado ahora
+  const now = new Date();
+  const nowMs = now.getTime();
+  let currentCarer = null;
+  blocks.forEach(cb=>{
+    const s = toDateTime(cb.startDate,cb.startTime).getTime();
+    const e = toDateTime(cb.endDate,cb.endTime).getTime();
+    if(nowMs>=s && nowMs<=e) currentCarer = cb.category;
+  });
+  const bannerBg = currentCarer==='mama' ? 'linear-gradient(135deg,#fde8f0,#fad5e5)' :
+                   currentCarer==='papa' ? 'linear-gradient(135deg,#e8f0fe,#d5e3fa)' :
+                   'linear-gradient(135deg,#fff8f0,#fdf2e9)';
+  const accentColor = currentCarer==='mama' ? 'var(--mama)' : currentCarer==='papa' ? 'var(--papa)' : 'var(--accent)';
+  banner.style.background = bannerBg;
+  banner.style.borderColor = currentCarer==='mama'?'#f0b8d0':currentCarer==='papa'?'#b8ccf0':'#f0ddc4';
+  banner.innerHTML = `<b style="color:${accentColor}">📍 Hoy · ${now.toLocaleDateString('es-AR',{weekday:'long',day:'numeric',month:'long'})}</b><br>` + lines.map(l=>escapeHtml(l)).join('<br>');
+  banner.style.display = 'block';
+}
+
+function refreshAll(){
+  renderTodayBanner();
+  renderCalendar();
+  renderDiagnostico();
+  renderTodos();
+  renderLinks();
+  renderHome();
+}
+
+
+
+function renderDiagnostico(){
+  let el = document.getElementById('diagFooter');
+  if(!el){
+    el = document.createElement('div');
+    el.id = 'diagFooter';
+    el.style.cssText = 'text-align:center;font-size:.65rem;color:#bbb;padding:10px 0 20px;';
+    el.innerHTML = '<div id="diagText"></div>';
+    document.querySelector('main').appendChild(el);
+  }
+  document.getElementById('diagText').textContent = `${nombreHijo()} · eventos: ${events.length} · bloques: ${careBlocks.length} · datos guardados solo en este dispositivo`;
+}
+
+document.getElementById('toggleActivitiesBtn').textContent = showActivities ? '👁️ Ocultar actividades' : '🙈 Mostrar actividades';
+document.getElementById('moreOptionsBtn').addEventListener('click', ()=>{
+  const menu = document.getElementById('moreOptionsMenu');
+  menu.style.display = menu.style.display === 'none' ? 'block' : 'none';
+});
+document.querySelectorAll('#moreOptionsMenu .menu-item').forEach(btn=>{
+  btn.addEventListener('click', ()=>{
+    document.getElementById('moreOptionsMenu').style.display = 'none';
+  });
+});
+
+// ---------- Pantallas de inicio: alta de hijo, selector y restauración ----------
+function descargarJson(obj, nombre){
+  const blob = new Blob([JSON.stringify(obj, null, 2)], {type:'application/json'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = nombre; a.click();
+  URL.revokeObjectURL(url);
+}
+function exportarTodo(){
+  descargarJson({ tipo:'gurises_respaldo_v3', generado:new Date().toISOString(), hijos:STORE.hijos },
+    `gurises_respaldo_${fmtDateStr(new Date())}.json`);
+  STORE.meta.ultimoBackup = Date.now();
+  guardarStore();
+  const b = document.getElementById('avisoBackup'); if(b) b.remove();
+}
+function esRespaldoValido(d){ return d && d.tipo==='gurises_respaldo_v3' && Array.isArray(d.hijos); }
+function normalizarHijo(h){
+  return { id:String(h.id||''), nombre:String(h.nombre||'Hijo/a'), emoji:h.emoji||'🧒',
+    events:h.events||[], careBlocks:h.careBlocks||[], templates:h.templates||JSON.parse(JSON.stringify(PLANTILLAS_INICIALES)),
+    todos:h.todos||[], links:h.links||[], updatedAt:h.updatedAt||Date.now() };
+}
+// Lee un archivo de respaldo. Acepta el respaldo completo (v3) y el de un solo hijo de la versión anterior.
+function restaurarDesdeArchivo(file, alTerminar){
+  const reader = new FileReader();
+  reader.onload = (evt)=>{
+    try{
+      const d = JSON.parse(evt.target.result);
+      if(esRespaldoValido(d)){
+        const total = d.hijos.length;
+        if(STORE.hijos.length && !confirm(`Este respaldo tiene ${total} hijo(s)/a(s).\n\nAceptar = REEMPLAZAR todo lo que hay en este dispositivo.\nCancelar = no hacer nada.`)) return;
+        STORE.hijos = d.hijos.map(normalizarHijo).filter(h=>h.id);
+        guardarStore();
+        alert('Respaldo restaurado.');
+        alTerminar();
+      }else if(d && (d.eventos || d.bloques)){
+        const nombre = (prompt('Este archivo es de un solo hijo/a (versión anterior).\n¿Cómo se llama?') || '').trim();
+        if(!nombre) return;
+        const h = crearHijo(nombre, '🧒');
+        h.events = d.eventos||[]; h.careBlocks = d.bloques||[]; h.templates = d.plantillas&&d.plantillas.length?d.plantillas:h.templates;
+        h.todos = d.pendientes||[]; h.links = d.enlaces||[];
+        guardarStore();
+        alert('Datos importados.');
+        alTerminar();
+      }else{
+        alert('El archivo no parece un respaldo de Gurises.');
+      }
+    }catch(err){
+      alert('No se pudo leer el archivo. ¿Es un respaldo de Gurises?');
+    }
+  };
+  reader.readAsText(file);
+}
+function pantallaBase(inner){
+  document.title = 'Gurises';
+  document.body.innerHTML = `<div style="max-width:420px;margin:0 auto;padding:40px 20px;text-align:center;font-family:sans-serif;color:#2b2b2b;">${inner}</div>`;
+}
+const BTN_PRIM = 'display:block;width:100%;box-sizing:border-box;padding:14px;border-radius:12px;border:0;background:#c9622a;color:#fff;font-size:1rem;font-weight:600;cursor:pointer;';
+const BTN_SEC = 'display:block;width:100%;box-sizing:border-box;padding:12px;border-radius:12px;border:1px solid #e6e3dc;background:#fff;color:#2b2b2b;font-size:.95rem;cursor:pointer;text-decoration:none;';
+function bloqueRestaurar(){
+  return `<div style="margin-top:28px;padding-top:20px;border-top:1px solid #e6e3dc;">
+    <p style="color:#8a8a8a;font-size:.85rem;margin:0 0 10px;">¿Ya usabas Gurises? Restaurá tu respaldo.</p>
+    <button id="restaurarBtn" style="${BTN_SEC}">📥 Restaurar respaldo</button>
+    <input type="file" id="restaurarInput" accept="application/json,.json" style="display:none;">
+  </div>`;
+}
+function conectarRestaurar(){
+  const btn = document.getElementById('restaurarBtn'), inp = document.getElementById('restaurarInput');
+  if(!btn) return;
+  btn.addEventListener('click', ()=>inp.click());
+  inp.addEventListener('change', ()=>{ if(inp.files[0]) restaurarDesdeArchivo(inp.files[0], ()=>{ window.location.href = window.location.pathname; }); });
+}
+function mostrarAlta(primera){
+  pantallaBase(`
+    <h1 style="margin:0 0 6px;font-size:1.5rem;">Gurises</h1>
+    <p style="color:#8a8a8a;margin:0 0 24px;">${primera ? 'Calendario de cuidado, pendientes y documentos de tus chicos. Tus datos quedan solo en este celular.' : 'Agregar un hijo/a'}</p>
+    <input id="altaNombre" type="text" maxlength="40" placeholder="Nombre" autocomplete="off" style="width:100%;box-sizing:border-box;padding:14px;border:1px solid #e6e3dc;border-radius:12px;font-size:1.05rem;margin-bottom:12px;">
+    <div id="altaEmojis" style="display:flex;flex-wrap:wrap;gap:8px;justify-content:center;margin-bottom:18px;">
+      ${EMOJIS_HIJO.map((e,i)=>`<button type="button" data-e="${e}" style="font-size:1.6rem;width:48px;height:48px;border-radius:12px;border:2px solid ${i===0?'#c9622a':'#e6e3dc'};background:#fff;cursor:pointer;">${e}</button>`).join('')}
+    </div>
+    <button id="altaOk" style="${BTN_PRIM}">Empezar</button>
+    ${!primera ? `<a href="?sel=1" style="${BTN_SEC};margin-top:10px;">Cancelar</a>` : ''}
+    ${primera ? bloqueRestaurar() : ''}`);
+  let emoji = EMOJIS_HIJO[0];
+  document.querySelectorAll('#altaEmojis button').forEach(b=>b.addEventListener('click', ()=>{
+    emoji = b.dataset.e;
+    document.querySelectorAll('#altaEmojis button').forEach(x=>x.style.borderColor = x===b ? '#c9622a' : '#e6e3dc');
+  }));
+  document.getElementById('altaOk').addEventListener('click', ()=>{
+    const nombre = document.getElementById('altaNombre').value.trim();
+    if(!nombre){ document.getElementById('altaNombre').focus(); return; }
+    const h = crearHijo(nombre, emoji);
+    window.location.href = window.location.pathname + '?fam=' + encodeURIComponent(h.id);
+  });
+  conectarRestaurar();
+}
+function mostrarSelectorHijos(){
+  pantallaBase(`
+    <h1 style="margin:0 0 6px;font-size:1.5rem;">Gurises</h1>
+    <p style="color:#8a8a8a;margin:0 0 24px;">¿De quién querés ver la info?</p>
+    <div style="display:grid;gap:14px;">
+      ${STORE.hijos.map(h=>`<a href="?fam=${encodeURIComponent(h.id)}" style="display:block;padding:22px 16px;border-radius:16px;background:#fff;border:1px solid #e6e3dc;text-decoration:none;color:#2b2b2b;box-shadow:0 1px 3px rgba(0,0,0,.05);">
+        <div style="font-size:2rem;line-height:1;">${escapeHtml(h.emoji||'🧒')}</div>
+        <div style="font-size:1.2rem;font-weight:600;margin-top:8px;">${escapeHtml(h.nombre)}</div>
+      </a>`).join('')}
+      <button id="agregarHijoBtn" style="${BTN_SEC}">➕ Agregar hijo/a</button>
+    </div>
+    <div style="margin-top:22px;display:grid;gap:10px;">
+      <button id="respaldoTodoBtn" style="${BTN_SEC}">💾 Descargar respaldo de todos</button>
+    </div>
+    ${bloqueRestaurar()}
+    <p style="margin-top:22px;"><button id="borrarHijoBtn" style="background:none;border:0;color:#c0392b;font-size:.8rem;cursor:pointer;text-decoration:underline;">Eliminar un hijo/a…</button></p>`);
+  document.getElementById('agregarHijoBtn').addEventListener('click', ()=>mostrarAlta(false));
+  document.getElementById('respaldoTodoBtn').addEventListener('click', exportarTodo);
+  document.getElementById('borrarHijoBtn').addEventListener('click', ()=>{
+    const nombre = (prompt('Escribí el nombre exacto del hijo/a que querés ELIMINAR con todos sus datos:\n\n' + STORE.hijos.map(h=>'• '+h.nombre).join('\n')) || '').trim();
+    const h = STORE.hijos.find(x=>x.nombre === nombre);
+    if(!h){ if(nombre) alert('No encontré ese nombre.'); return; }
+    if(!confirm(`Se eliminan TODOS los datos de ${h.nombre} de este dispositivo. No se puede deshacer.\n¿Descargaste un respaldo antes?`)) return;
+    STORE.hijos = STORE.hijos.filter(x=>x.id!==h.id);
+    guardarStore();
+    window.location.href = window.location.pathname + '?sel=1';
+  });
+  conectarRestaurar();
+}
+
+function avisarBackupSiHaceFalta(){
+  const hayDatos = STORE.hijos.some(h=>(h.events||[]).length || (h.careBlocks||[]).length || (h.todos||[]).length || (h.links||[]).length);
+  if(!hayDatos) return;
+  const ultimo = STORE.meta.ultimoBackup || 0;
+  if(Date.now() - ultimo < 14*864e5) return;
+  const d = document.createElement('div');
+  d.id = 'avisoBackup';
+  d.style.cssText = 'position:fixed;left:10px;right:10px;bottom:10px;z-index:90;background:#fff8e1;border:1px solid #f0d58c;border-radius:12px;padding:12px;font-size:.85rem;box-shadow:0 2px 8px rgba(0,0,0,.15);display:flex;gap:10px;align-items:center;';
+  d.innerHTML = '<span style="flex:1;">Tus datos están solo en este celular. Descargá un respaldo.</span><button id="avisoBackupOk" style="padding:8px 12px;border:0;border-radius:8px;background:#c9622a;color:#fff;font-weight:600;">Respaldar</button><button id="avisoBackupX" aria-label="Cerrar" style="border:0;background:none;font-size:1.1rem;">✕</button>';
+  document.body.appendChild(d);
+  document.getElementById('avisoBackupOk').addEventListener('click', exportarTodo);
+  document.getElementById('avisoBackupX').addEventListener('click', ()=>{ d.remove(); STORE.meta.ultimoBackup = Date.now() - 7*864e5; guardarStore(); });
+}
+
+function iniciarApp(){
+  if(!STORE.hijos.length){ mostrarAlta(true); return; }
+  if(urlParams.get('sel') || !hijoActual()){
+    if(!urlParams.get('sel') && STORE.hijos.length === 1){
+      familiaId = STORE.hijos[0].id;
+      history.replaceState(null, '', '?fam=' + encodeURIComponent(familiaId));
+    }else{
+      mostrarSelectorHijos();
+      return;
+    }
+  }
+  const h = hijoActual();
+  events = h.events || []; careBlocks = h.careBlocks || [];
+  templates = (h.templates && h.templates.length) ? h.templates : templates;
+  todos = h.todos || []; links = h.links || [];
+  document.title = nombreHijo() + ' · Gurises';
+  document.querySelectorAll('.hijo-nombre').forEach(el=>{ el.textContent = nombreHijo(); });
+  const cambiarBtn = document.getElementById('cambiarHijoBtn');
+  if(cambiarBtn) cambiarBtn.addEventListener('click', ()=>{ window.location.href = window.location.pathname + '?sel=1'; });
+  document.body.classList.remove('read-only-mode');
+  refreshAll();
+  avisarBackupSiHaceFalta();
+}
+
+// ---------- Pendientes (to-do) ----------
+let editingTodoId = null;
+let showTodoArchive = false;
+
+function todoDateLabel(ds){
+  const today = fmtDateStr(new Date());
+  const [y,m,d] = ds.split('-').map(Number);
+  const txt = new Date(y, m-1, d).toLocaleDateString('es-AR',{weekday:'short', day:'numeric', month:'short'});
+  if(ds < today) return {cls:'overdue', txt:'⚠️ ' + txt};
+  if(ds === today) return {cls:'today', txt:'Hoy'};
+  return {cls:'', txt:'📅 ' + txt};
+}
+
+function todoItemHtml(t, archived){
+  let dateHtml = '';
+  if(t.date){
+    const l = archived ? {cls:'', txt:'📅 ' + t.date.split('-').reverse().join('/')} : todoDateLabel(t.date);
+    dateHtml = `<span class="todo-date ${l.cls}">${escapeHtml(l.txt)}</span>`;
+  }
+  return `<div class="todo-item ${archived?'archived':''}" data-id="${escapeHtml(t.id)}">
+    <input type="checkbox" class="todo-check" ${t.done?'checked':''} aria-label="Marcar como hecho">
+    <div class="todo-main">
+      <div class="todo-title">${escapeHtml(t.title)}</div>
+      ${t.detail ? `<div class="todo-detail">${escapeHtml(t.detail)}</div>` : ''}
+      ${dateHtml}
+    </div>
+  </div>`;
+}
+
+function renderTodos(){
+  const listEl = document.getElementById('todoList');
+  if(!listEl) return;
+  const pending = todos.filter(t=>!t.done).sort((a,b)=>{
+    if(a.date && b.date) return a.date.localeCompare(b.date);
+    if(a.date) return -1;
+    if(b.date) return 1;
+    return (a.createdAt||0) - (b.createdAt||0);
+  });
+  const archived = todos.filter(t=>t.done).sort((a,b)=>(b.doneAt||0)-(a.doneAt||0));
+
+  listEl.innerHTML = pending.length
+    ? pending.map(t=>todoItemHtml(t,false)).join('')
+    : '<div class="todo-empty">🎉 No hay pendientes.</div>';
+  document.getElementById('todoArchive').innerHTML = archived.length
+    ? archived.map(t=>todoItemHtml(t,true)).join('')
+    : '<div class="todo-empty">Todavía no hay tareas archivadas.</div>';
+  document.getElementById('todoArchive').style.display = showTodoArchive ? 'block' : 'none';
+  document.getElementById('todoToggleArchiveBtn').textContent =
+    (showTodoArchive ? '▾ Ocultar archivadas' : '▸ Ver archivadas') + ` (${archived.length})`;
+
+  const homeCount = document.getElementById('homeTodoCount');
+  if(homeCount) homeCount.textContent = pending.length ? `${pending.length} sin hacer` : 'Todo al día';
+}
+
+function openTodoModal(id){
+  if(isReadOnly){ alert('Activá el modo edición (PIN) para modificar pendientes.'); return; }
+  editingTodoId = id || null;
+  const t = id ? todos.find(x=>x.id===id) : null;
+  document.getElementById('todoModalTitle').textContent = t ? 'Editar pendiente' : 'Nuevo pendiente';
+  document.getElementById('todoTitleInput').value = t ? t.title : '';
+  document.getElementById('todoDetailInput').value = t ? (t.detail||'') : '';
+  document.getElementById('todoDateInput').value = t ? (t.date||'') : '';
+  document.getElementById('todoDeleteBtn').style.display = t ? 'block' : 'none';
+  document.getElementById('todoModal').classList.add('open');
+  setTimeout(()=>document.getElementById('todoTitleInput').focus(), 50);
+}
+function closeTodoModal(){ document.getElementById('todoModal').classList.remove('open'); }
+
+function openTodoView(){
+  renderTodos();
+  document.getElementById('todoView').classList.add('open');
+  document.getElementById('todoView').scrollTop = 0;
+}
+document.getElementById('todoBackBtn').addEventListener('click', ()=>{
+  document.getElementById('todoView').classList.remove('open');
+});
+document.getElementById('todoAddBtn').addEventListener('click', ()=>openTodoModal(null));
+document.getElementById('todoCancelBtn').addEventListener('click', closeTodoModal);
+document.getElementById('todoToggleArchiveBtn').addEventListener('click', ()=>{
+  showTodoArchive = !showTodoArchive;
+  renderTodos();
+});
+
+document.getElementById('todoSaveBtn').addEventListener('click', async ()=>{
+  const title = document.getElementById('todoTitleInput').value.trim();
+  if(!title){ alert('Poné un título.'); return; }
+  const detail = document.getElementById('todoDetailInput').value.trim();
+  const date = document.getElementById('todoDateInput').value || '';
+  if(editingTodoId){
+    const t = todos.find(x=>x.id===editingTodoId);
+    if(t){ t.title = title; t.detail = detail; t.date = date; }
+  } else {
+    todos.push({ id:'td'+Date.now()+Math.random().toString(36).slice(2,6), title, detail, date, done:false, createdAt:Date.now() });
+  }
+  closeTodoModal();
+  renderTodos();
+  await persistAll();
+});
+
+document.getElementById('todoDeleteBtn').addEventListener('click', async ()=>{
+  if(!editingTodoId) return;
+  if(!confirm('¿Borrar este pendiente definitivamente?')) return;
+  todos = todos.filter(x=>x.id!==editingTodoId);
+  closeTodoModal();
+  renderTodos();
+  await persistAll();
+});
+
+// Tocar el checkbox archiva (o recupera); tocar el texto abre la edición
+['todoList','todoArchive'].forEach(listId=>{
+  document.getElementById(listId).addEventListener('click', async (e)=>{
+    const item = e.target.closest('.todo-item');
+    if(!item) return;
+    const t = todos.find(x=>x.id===item.dataset.id);
+    if(!t) return;
+    if(e.target.classList.contains('todo-check')){
+      if(isReadOnly){ e.preventDefault(); alert('Activá el modo edición (PIN) para modificar pendientes.'); return; }
+      t.done = e.target.checked;
+      t.doneAt = t.done ? Date.now() : null;
+      renderTodos();
+      await persistAll();
+    } else if(e.target.closest('.todo-main')){
+      openTodoModal(t.id);
+    }
+  });
+});
+
+// ---------- Panel principal ----------
+function renderHome(){
+  const banner = document.getElementById('todayBanner');
+  const t = document.getElementById('homeToday');
+  if(!t || !banner) return;
+  if(banner.style.display === 'none' || !banner.innerHTML){ t.style.display = 'none'; }
+  else { t.innerHTML = banner.innerHTML; t.style.cssText = banner.style.cssText; t.style.display = 'block'; t.style.marginBottom = '14px'; }
+  const n = sec => links.filter(l=>l.section===sec).length;
+  const d = document.getElementById('homeDocsCount'), c = document.getElementById('homeClinicaCount');
+  if(d) d.textContent = n('docs') ? `${n('docs')} enlace${n('docs')>1?'s':''}` : 'Sin enlaces';
+  if(c) c.textContent = n('clinica') ? `${n('clinica')} enlace${n('clinica')>1?'s':''}` : 'Sin enlaces';
+}
+const homeEl = document.getElementById('homeView');
+document.getElementById('openHomeBtn').addEventListener('click', ()=>{ renderHome(); homeEl.classList.add('open'); homeEl.scrollTop = 0; });
+document.getElementById('tileCalendar').addEventListener('click', ()=>{ homeEl.classList.remove('open'); window.scrollTo(0,0); });
+document.getElementById('tileTodos').addEventListener('click', openTodoView);
+document.getElementById('tileDocs').addEventListener('click', ()=>openLinksView('docs'));
+document.getElementById('tileClinica').addEventListener('click', ()=>openLinksView('clinica'));
+
+// ---------- Enlaces (Documentos / Historia clínica) ----------
+const LINK_SECTIONS = {
+  docs:    { title:'📄 Documentos', notice:'' },
+  clinica: { title:'🩺 Historia clínica', notice:'Guardá acá solo enlaces a los archivos (Drive, portal de la obra social, etc.), no datos clínicos. Cualquiera que tenga el link de la app ve esta lista, así que los archivos tienen que estar con acceso restringido, no como "cualquiera con el enlace".' }
+};
+let currentLinkSection = 'docs';
+let editingLinkId = null;
+
+function attrEsc(str){ return escapeHtml(str).replace(/"/g,'&quot;'); }
+function normalizeUrl(raw){
+  let u = (raw||'').trim();
+  if(!u) return null;
+  if(!/^[a-z][a-z0-9+.-]*:/i.test(u)) u = 'https://' + u;
+  try{
+    const parsed = new URL(u);
+    return (parsed.protocol === 'https:' || parsed.protocol === 'http:') ? parsed.href : null;
+  }catch(e){ return null; }
+}
+function linkHost(u){ try{ return new URL(u).hostname.replace(/^www\./,''); }catch(e){ return ''; } }
+
+function renderLinks(){
+  const listEl = document.getElementById('linksList');
+  if(!listEl) return;
+  const sec = LINK_SECTIONS[currentLinkSection];
+  document.getElementById('linksTitle').textContent = sec.title;
+  const notice = document.getElementById('linksNotice');
+  notice.textContent = sec.notice;
+  notice.style.display = sec.notice ? 'block' : 'none';
+
+  const items = links.filter(l=>l.section===currentLinkSection);
+  if(!items.length){
+    listEl.innerHTML = '<div class="todo-empty">Todavía no hay enlaces. Tocá “＋ Nuevo” para agregar el primero.</div>';
+  } else {
+    const groups = {};
+    items.forEach(l=>{ const k = (l.category||'').trim() || 'Sin categoría'; (groups[k] = groups[k] || []).push(l); });
+    const keys = Object.keys(groups).sort((a,b)=>{
+      if(a==='Sin categoría') return 1;
+      if(b==='Sin categoría') return -1;
+      return a.localeCompare(b,'es');
+    });
+    listEl.innerHTML = keys.map(k=>{
+      const rows = groups[k].sort((a,b)=>a.title.localeCompare(b.title,'es')).map(l=>`
+        <div class="link-item" data-id="${attrEsc(l.id)}">
+          <a class="link-main" href="${attrEsc(l.url)}" target="_blank" rel="noopener noreferrer">
+            <div class="link-title">${escapeHtml(l.title)}</div>
+            ${l.note ? `<div class="link-note">${escapeHtml(l.note)}</div>` : ''}
+            <div class="link-host">🔗 ${escapeHtml(linkHost(l.url))}</div>
+          </a>
+          <button class="link-edit" aria-label="Editar">✎</button>
+        </div>`).join('');
+      return `<div class="link-cat">${escapeHtml(k)}</div>${rows}`;
+    }).join('');
+  }
+  const cats = [...new Set(links.map(l=>(l.category||'').trim()).filter(Boolean))];
+  document.getElementById('linkCatList').innerHTML = cats.map(c=>`<option value="${attrEsc(c)}">`).join('');
+}
+
+function openLinksView(section){
+  currentLinkSection = section;
+  renderLinks();
+  const v = document.getElementById('linksView');
+  v.classList.add('open');
+  v.scrollTop = 0;
+}
+function openLinkModal(id){
+  if(isReadOnly){ alert('Activá el modo edición (PIN) para modificar enlaces.'); return; }
+  editingLinkId = id || null;
+  const l = id ? links.find(x=>x.id===id) : null;
+  document.getElementById('linkModalTitle').textContent = l ? 'Editar enlace' : 'Nuevo enlace';
+  document.getElementById('linkTitleInput').value = l ? l.title : '';
+  document.getElementById('linkUrlInput').value = l ? l.url : '';
+  document.getElementById('linkCatInput').value = l ? (l.category||'') : '';
+  document.getElementById('linkNoteInput').value = l ? (l.note||'') : '';
+  document.getElementById('linkDeleteBtn').style.display = l ? 'block' : 'none';
+  document.getElementById('linkModal').classList.add('open');
+  setTimeout(()=>document.getElementById('linkTitleInput').focus(), 50);
+}
+function closeLinkModal(){ document.getElementById('linkModal').classList.remove('open'); }
+
+document.getElementById('linksBackBtn').addEventListener('click', ()=>{
+  document.getElementById('linksView').classList.remove('open');
+});
+document.getElementById('linksAddBtn').addEventListener('click', ()=>openLinkModal(null));
+document.getElementById('linkCancelBtn').addEventListener('click', closeLinkModal);
+document.getElementById('linksList').addEventListener('click', (e)=>{
+  const btn = e.target.closest('.link-edit');
+  if(!btn) return;
+  openLinkModal(btn.closest('.link-item').dataset.id);
+});
+document.getElementById('linkSaveBtn').addEventListener('click', async ()=>{
+  const title = document.getElementById('linkTitleInput').value.trim();
+  const url = normalizeUrl(document.getElementById('linkUrlInput').value);
+  if(!title){ alert('Poné un título.'); return; }
+  if(!url){ alert('El enlace no es válido. Tiene que ser una dirección web (https://...).'); return; }
+  const category = document.getElementById('linkCatInput').value.trim();
+  const note = document.getElementById('linkNoteInput').value.trim();
+  if(editingLinkId){
+    const l = links.find(x=>x.id===editingLinkId);
+    if(l){ l.title = title; l.url = url; l.category = category; l.note = note; }
+  } else {
+    links.push({ id:'lk'+Date.now()+Math.random().toString(36).slice(2,6), section:currentLinkSection, title, url, category, note, createdAt:Date.now() });
+  }
+  closeLinkModal();
+  renderLinks(); renderHome();
+  await persistAll();
+});
+document.getElementById('linkDeleteBtn').addEventListener('click', async ()=>{
+  if(!editingLinkId) return;
+  if(!confirm('¿Borrar este enlace? (El archivo original no se toca.)')) return;
+  links = links.filter(x=>x.id!==editingLinkId);
+  closeLinkModal();
+  renderLinks(); renderHome();
+  await persistAll();
+});
+
+// ---------- Chequeador de superposiciones ----------
+function detectOverlaps(){
+  // Devuelve lista de pares [blockA, blockB] que se solapan en tiempo
+  const pairs = [];
+  const sorted = [...careBlocks].sort((a,b)=>toDateTime(a.startDate,a.startTime)-toDateTime(b.startDate,b.startTime));
+  for(let i=0;i<sorted.length;i++){
+    const a = sorted[i];
+    const aStart = toDateTime(a.startDate, a.startTime);
+    const aEnd   = toDateTime(a.endDate,   a.endTime);
+    for(let j=i+1;j<sorted.length;j++){
+      const b = sorted[j];
+      const bStart = toDateTime(b.startDate, b.startTime);
+      const bEnd   = toDateTime(b.endDate,   b.endTime);
+      if(bStart >= aEnd) break; // sorted: si B empieza después de A termina, ninguno más solapará con A
+      // Hay solapamiento si bStart < aEnd && bEnd > aStart (ya sabemos bStart < aEnd)
+      if(bEnd > aStart) pairs.push([a, b]);
+    }
+  }
+  return pairs;
+}
+
+function fmtBlock(cb){
+  const catLabel = cb.category==='mama'?'Mamá':'Papá';
+  const color    = cb.category==='mama'?'var(--mama)':'var(--papa)';
+  return `<span style="color:${color};font-weight:600;">${catLabel}</span> `
+       + `${cb.startDate} ${cb.startTime}→${cb.endDate} ${cb.endTime}`;
+}
+
+function openOverlapModal(){
+  if(isReadOnly){ alert('Activá el modo edición (PIN) para corregir superposiciones.'); return; }
+  const pairs = detectOverlaps();
+  const subtitle = document.getElementById('overlapSubtitle');
+  const list     = document.getElementById('overlapList');
+  list.innerHTML = '';
+
+  if(pairs.length === 0){
+    subtitle.textContent = '¡Todo en orden! No hay bloques superpuestos.';
+    document.getElementById('overlapModal').style.display = 'block';
+    return;
+  }
+
+  subtitle.textContent = `Se encontraron ${pairs.length} superposición${pairs.length>1?'es':''}.`;
+
+  pairs.forEach(([a, b], idx)=>{
+    const aStart = toDateTime(a.startDate, a.startTime);
+    const aEnd   = toDateTime(a.endDate,   a.endTime);
+    const bStart = toDateTime(b.startDate, b.startTime);
+    const bEnd   = toDateTime(b.endDate,   b.endTime);
+
+    // Calcular la ventana de solapamiento
+    const overStart = aStart > bStart ? aStart : bStart;
+    const overEnd   = aEnd   < bEnd   ? aEnd   : bEnd;
+    const overMins  = Math.round((overEnd - overStart) / 60000);
+    const overLabel = overMins >= 60
+      ? `${Math.floor(overMins/60)}h${overMins%60>0?' '+overMins%60+'min':''}`
+      : `${overMins} min`;
+
+    const card = document.createElement('div');
+    card.style.cssText = 'border:1px solid var(--line);border-radius:10px;padding:12px;margin-bottom:10px;font-size:.85rem;';
+    card.innerHTML = `
+      <div style="margin-bottom:6px;"><b>#${idx+1}</b> — solapamiento de <b>${overLabel}</b></div>
+      <div>🔵 ${fmtBlock(a)}</div>
+      <div>🔴 ${fmtBlock(b)}</div>
+      <div style="margin-top:10px;display:grid;grid-template-columns:1fr 1fr;gap:6px;">
+        <button class="overlap-fix-btn" data-action="trim-a" data-idx="${idx}"
+          style="padding:7px 4px;border:1px solid var(--line);border-radius:7px;cursor:pointer;font-size:.78rem;text-align:center;">
+          ✂️ Recortar 🔵
+        </button>
+        <button class="overlap-fix-btn" data-action="trim-b" data-idx="${idx}"
+          style="padding:7px 4px;border:1px solid var(--line);border-radius:7px;cursor:pointer;font-size:.78rem;text-align:center;">
+          ✂️ Recortar 🔴
+        </button>
+        <button class="overlap-fix-btn" data-action="delete-a" data-idx="${idx}"
+          style="padding:7px 4px;border:1px solid #c0392b;color:#c0392b;border-radius:7px;cursor:pointer;font-size:.78rem;text-align:center;">
+          🗑️ Eliminar 🔵
+        </button>
+        <button class="overlap-fix-btn" data-action="delete-b" data-idx="${idx}"
+          style="padding:7px 4px;border:1px solid #c0392b;color:#c0392b;border-radius:7px;cursor:pointer;font-size:.78rem;text-align:center;">
+          🗑️ Eliminar 🔴
+        </button>
+      </div>`;
+
+    // Guardar referencias en el card para acceder desde el listener
+    card._overlapA = a;
+    card._overlapB = b;
+    card._overlapOverEnd = overEnd;
+    card._overlapOverStart = overStart;
+    list.appendChild(card);
+  });
+
+  // Event delegation en la lista (una sola vez, sin acumulación)
+  async function handleFixClick(e){
+    const btn = e.target.closest('.overlap-fix-btn');
+    if(!btn) return;
+    // buscar el card padre con _overlapA
+    let c = btn.parentElement;
+    while(c && !c._overlapA) c = c.parentElement;
+    if(!c) return;
+    const a = c._overlapA, b = c._overlapB;
+    const action = btn.dataset.action;
+
+    const pad = n => String(n).padStart(2,'0');
+    function toDateStr(d){ return d.toISOString().slice(0,10); }
+
+    if(action === 'trim-a'){
+      a.endDate = toDateStr(toDateTime(b.startDate, b.startTime));
+      a.endTime = b.startTime;
+    } else if(action === 'trim-b'){
+      b.startDate = toDateStr(toDateTime(a.endDate, a.endTime));
+      b.startTime = a.endTime;
+    } else if(action === 'delete-b'){
+      careBlocks = careBlocks.filter(cb => cb.id !== b.id);
+    } else if(action === 'delete-a'){
+      careBlocks = careBlocks.filter(cb => cb.id !== a.id);
+    }
+
+    list.removeEventListener('click', handleFixClick);
+    await persistAll();
+    renderCalendar();
+    // Reabrir el modal con lista actualizada
+    openOverlapModal();
+  }
+  list.addEventListener('click', handleFixClick);
+
+  document.getElementById('overlapModal').style.display = 'block';
+}
+
+// ---------- Borrar por rango de fechas ----------
+document.getElementById('deleteRangeBtn').addEventListener('click', ()=>{
+  document.getElementById('moreOptionsMenu').style.display = 'none';
+  // Pre-rellenar con inicio/fin del mes actual
+  const pad = n=>String(n).padStart(2,'0');
+  const y = currentDate.getFullYear(), m = currentDate.getMonth();
+  const firstDay = `${y}-${pad(m+1)}-01`;
+  const lastDay  = `${y}-${pad(m+1)}-${pad(new Date(y,m+1,0).getDate())}`;
+  document.getElementById('deleteRangeFrom').value = firstDay;
+  document.getElementById('deleteRangeTo').value   = lastDay;
+  updateDeleteRangePreview();
+  document.getElementById('deleteRangeModal').style.display = 'block';
+});
+
+function updateDeleteRangePreview(){
+  const from = document.getElementById('deleteRangeFrom').value;
+  const to   = document.getElementById('deleteRangeTo').value;
+  const el   = document.getElementById('deleteRangePreview');
+  if(!from || !to || from > to){ el.textContent = ''; return; }
+  const cbCount = careBlocks.filter(cb=> cb.startDate <= to && cb.endDate >= from).length;
+  const evCount = events.filter(ev=> {
+    const evEnd = ev.endDate || ev.date;
+    return ev.date <= to && evEnd >= from;
+  }).length;
+  el.textContent = `Se borrarán: ${cbCount} bloque(s) de cuidado y ${evCount} actividad(es).`;
+}
+
+['deleteRangeFrom','deleteRangeTo'].forEach(id=>{
+  document.getElementById(id).addEventListener('change', updateDeleteRangePreview);
+});
+
+document.getElementById('deleteRangeCancelBtn').addEventListener('click', ()=>{
+  document.getElementById('deleteRangeModal').style.display = 'none';
+});
+
+document.getElementById('deleteRangeConfirmBtn').addEventListener('click', async ()=>{
+  const from = document.getElementById('deleteRangeFrom').value;
+  const to   = document.getElementById('deleteRangeTo').value;
+  if(!from || !to || from > to){ alert('Rango inválido.'); return; }
+  if(isReadOnly){ alert('Activá el modo edición (PIN) para borrar.'); return; }
+
+  const cbBefore = careBlocks.length;
+  const evBefore = events.length;
+  careBlocks = careBlocks.filter(cb=> !(cb.startDate <= to && cb.endDate >= from));
+  events = events.filter(ev=>{
+    const evEnd = ev.endDate || ev.date;
+    return !(ev.date <= to && evEnd >= from);
+  });
+  const cbDel = cbBefore - careBlocks.length;
+  const evDel = evBefore - events.length;
+
+  await persistAll();
+  renderCalendar();
+  document.getElementById('deleteRangeModal').style.display = 'none';
+  alert(`✅ Borrados: ${cbDel} bloque(s) de cuidado y ${evDel} actividad(es).`);
+});
+
+document.getElementById('checkOverlapsBtn').addEventListener('click', ()=>{
+  document.getElementById('moreOptionsMenu').style.display = 'none';
+  openOverlapModal();
+});
+document.getElementById('overlapCloseBtn').addEventListener('click', ()=>{
+  document.getElementById('overlapModal').style.display = 'none';
+});
+
+// ---------- Validación de cobertura mensual ----------
+function openCoverageModal(){
+  // Mes actual del calendario
+  const year  = currentYear;
+  const month = currentMonth; // 0-based
+  const daysInMonth = new Date(year, month+1, 0).getDate();
+  const totalHours  = daysInMonth * 24;
+
+  const pad2 = n => String(n).padStart(2,'0');
+  const startStr = `${year}-${pad2(month+1)}-01`;
+  const endStr   = `${year}-${pad2(month+1)}-${pad2(daysInMonth)}`;
+
+  const horasMama = categoryHoursInRange('mama', startStr, endStr);
+  const horasPapa = categoryHoursInRange('papa', startStr, endStr);
+  const sumaCargada = horasMama + horasPapa;
+
+  // Horas sin cobertura: días del mes donde ningún bloque toca ese día
+  let diasSinCobertura = 0;
+  let horasSinCobertura = 0;
+  for(let d=1; d<=daysInMonth; d++){
+    const ds = `${year}-${pad2(month+1)}-${pad2(d)}`;
+    const bloques = careBlocksForDay(ds);
+    if(bloques.length === 0){
+      diasSinCobertura++;
+      horasSinCobertura += 24;
+    }
+  }
+
+  const exceso = sumaCargada > totalHours ? sumaCargada - totalHours : 0;
+  const pctMama = totalHours > 0 ? (horasMama / totalHours * 100).toFixed(1) : '0';
+  const pctPapa = totalHours > 0 ? (horasPapa / totalHours * 100).toFixed(1) : '0';
+  const pctTotal = totalHours > 0 ? (sumaCargada / totalHours * 100).toFixed(1) : '0';
+
+  const monthNames = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
+  const monthLabel = `${monthNames[month]} ${year}`;
+
+  document.getElementById('coverageSubtitle').textContent =
+    `${monthLabel} — ${daysInMonth} días = ${totalHours}h posibles`;
+
+  const fmt = h => {
+    const hh = Math.floor(h), mm = Math.round((h - hh)*60);
+    return mm > 0 ? `${hh}h ${mm}min` : `${hh}h`;
+  };
+
+  let html = `
+    <div style="display:grid;gap:8px;">
+      <div style="display:flex;justify-content:space-between;padding:10px 12px;background:#f0f4ff;border-radius:8px;">
+        <span style="color:var(--papa);font-weight:600;">👨 Papá</span>
+        <span>${fmt(horasPapa)} <span style="color:var(--muted);font-size:.8rem;">(${pctPapa}%)</span></span>
+      </div>
+      <div style="display:flex;justify-content:space-between;padding:10px 12px;background:#fff0f5;border-radius:8px;">
+        <span style="color:var(--mama);font-weight:600;">👩 Mamá</span>
+        <span>${fmt(horasMama)} <span style="color:var(--muted);font-size:.8rem;">(${pctMama}%)</span></span>
+      </div>
+      <div style="display:flex;justify-content:space-between;padding:10px 12px;border:1px solid var(--line);border-radius:8px;font-weight:600;">
+        <span>∑ Total cargado</span>
+        <span>${fmt(sumaCargada)} <span style="color:var(--muted);font-size:.8rem;">(${pctTotal}%)</span></span>
+      </div>
+      <div style="display:flex;justify-content:space-between;padding:10px 12px;background:#f5f5f5;border-radius:8px;">
+        <span style="color:var(--muted);">🕐 Horas del mes</span>
+        <span style="color:var(--muted);">${totalHours}h</span>
+      </div>`;
+
+  if(exceso > 0){
+    html += `
+      <div style="padding:10px 12px;background:#fdecea;border:1px solid #e74c3c;border-radius:8px;color:#c0392b;">
+        ⚠️ <b>Exceso de ${fmt(exceso)}</b> — la suma de bloques supera las horas reales del mes.<br>
+        <span style="font-size:.82rem;">Esto pasa cuando hay superposiciones. Usá "Verificar superposiciones" para corregirlas.</span>
+      </div>`;
+  } else if(diasSinCobertura > 0){
+    html += `
+      <div style="padding:10px 12px;background:#fffbe6;border:1px solid #f39c12;border-radius:8px;color:#856404;">
+        📅 <b>${diasSinCobertura} día${diasSinCobertura>1?'s':''} sin ningún bloque</b> (~${fmt(horasSinCobertura)} sin cobertura).<br>
+        <span style="font-size:.82rem;">No necesariamente es error, pero conviene revisarlo.</span>
+      </div>`;
+  } else {
+    html += `
+      <div style="padding:10px 12px;background:#eafaf1;border:1px solid #27ae60;border-radius:8px;color:#1e8449;">
+        ✅ <b>Cobertura coherente</b> — todo el mes tiene bloques y la suma no supera el máximo posible.
+      </div>`;
+  }
+
+  html += `</div>`;
+  document.getElementById('coverageBody').innerHTML = html;
+  document.getElementById('coverageModal').style.display = 'block';
+}
+
+document.getElementById('coverageCloseBtn').addEventListener('click', ()=>{
+  document.getElementById('coverageModal').style.display = 'none';
+});
+
+iniciarApp();
+
+if('serviceWorker' in navigator){
+  navigator.serviceWorker.register('sw.js').catch(()=>{});
+}
+</script>
+</body>
+</html>
