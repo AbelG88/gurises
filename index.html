@@ -50,7 +50,8 @@
   .home-intro b.t{display:block;font-size:1rem;margin-bottom:4px;color:#1e40af;}
   .home-intro button{position:absolute;top:8px;right:10px;border:0;background:none;font-size:1rem;color:var(--muted);cursor:pointer;}
   .home-intro .sm{display:block;margin-top:6px;font-size:.78rem;color:var(--muted);}
-  body.nomod-nappy #tileNappy{display:none !important;}
+  body.nomod-nappy #tileNappy, body.nomod-dieta #tileDieta, body.nomod-comunicacion #tileComu{display:none !important;}
+  #tileComu{background:#fce7f3 !important;opacity:.8;}
   :root{
     --mama:#e0578c;
     --papa:#3b7ddb;
@@ -854,6 +855,8 @@
       <button class="home-tile" id="tileDocs"><span class="ico">📄</span><span class="nm">Documentos</span><span class="sub" id="homeDocsCount">—</span></button>
       <button class="home-tile" id="tileNappy"><span class="ico">🧷</span><span class="nm">Nappy</span><span class="sub">Control de pañal</span></button>
       <button class="home-tile" id="tileClinica"><span class="ico">🩺</span><span class="nm">Historia clínica</span><span class="sub" id="homeClinicaCount">—</span></button>
+      <button class="home-tile" id="tileDieta"><span class="ico">🍽️</span><span class="nm">Dieta</span><span class="sub">Menú y compras (Mangiamo)</span></button>
+      <button class="home-tile" id="tileComu"><span class="ico">💬</span><span class="nm">Comunicación</span><span class="sub">Próximamente</span></button>
       <button class="home-tile" id="tileConfig" style="grid-column:1 / -1;"><span class="ico">⚙️</span><span class="nm">Configuración</span><span class="sub">Módulos, respaldos y apoyo</span></button>
     </div>
   </div>
@@ -1020,7 +1023,9 @@ const MODULOS = [
   {k:'docs',       ico:'📄', nm:'Documentos',         ds:'Enlaces a documentación importante'},
   {k:'clinica',    ico:'🩺', nm:'Historia clínica',   ds:'Enlaces y notas de salud'},
   {k:'informes',   ico:'📑', nm:'Informes PDF',       ds:'Exportar resúmenes en PDF'},
-  {k:'nappy',      ico:'🧷', nm:'Control de pañal (Nappy)', ds:'Si está en edad de pañales: te lleva a Nappy', def:false},
+  {k:'nappy',      ico:'🧷', nm:'Control de pañal (Nappy)', ds:'Si está en edad de pañales: te lleva a Nappy', def:false, app:true},
+  {k:'dieta',      ico:'🍽️', nm:'Dieta (Mangiamo)', ds:'Menú semanal y lista de compras según la dieta de cada uno', def:false, app:true},
+  {k:'comunicacion',ico:'💬', nm:'Comunicación (próximamente)', ds:'App de comunicación con imágenes para quienes tienen dificultades para hablar', def:false, app:true},
   {k:'sync',       ico:'🔗', nm:'Vincular calendario',ds:'Exportar .ics para Google Calendar, Apple o Outlook'}
 ];
 function modulosDe(h){
@@ -2834,7 +2839,7 @@ function mostrarModulos(h, primera){
     <h1 style="margin:0 0 6px;font-size:1.4rem;">¿Qué querés usar?</h1>
     <p style="color:#64748b;margin:0 0 20px;">${primera ? 'El calendario siempre está. Activá solo lo que necesites; lo podés cambiar después desde Más → Módulos.' : 'Activá o desactivá módulos. No se borra nada.'}</p>
     <div style="display:grid;gap:10px;text-align:left;">
-      ${MODULOS.map(m=>`<label style="display:flex;gap:12px;align-items:center;padding:14px;border:1px solid #e2e8f0;border-radius:14px;background:#fff;cursor:pointer;">
+      ${MODULOS.map((m,ix)=>`${m.app && !(MODULOS[ix-1]&&MODULOS[ix-1].app) ? '<p style="margin:10px 4px 0;font-weight:700;color:#1e40af;">Te llevan a otras apps</p>' : ''}<label style="display:flex;gap:12px;align-items:center;padding:14px;border:1px solid #e2e8f0;border-radius:14px;background:#fff;cursor:pointer;">
         <input type="checkbox" data-k="${m.k}" ${act[m.k]?'checked':''} style="width:22px;height:22px;flex:none;">
         <span style="font-size:1.6rem;">${m.ico}</span>
         <span><b>${m.nm}</b><br><span style="color:#64748b;font-size:.82rem;">${m.ds}</span></span>
@@ -3092,6 +3097,8 @@ document.getElementById('tileCalendar').addEventListener('click', ()=>{ homeEl.c
 document.getElementById('tileTodos').addEventListener('click', openTodoView);
 document.getElementById('tileDocs').addEventListener('click', ()=>openLinksView('docs'));
 document.getElementById('tileNappy').addEventListener('click', ()=>{ window.open('https://abelg88.github.io/Nappy/', '_blank'); });
+document.getElementById('tileDieta').addEventListener('click', ()=>{ window.open('https://abelg88.github.io/mangiamo/', '_blank'); });
+document.getElementById('tileComu').addEventListener('click', ()=>{ alert('Estamos armando una app de comunicación con imágenes y rutinas. ¡Pronto estará disponible acá!'); });
 document.getElementById('tileClinica').addEventListener('click', ()=>openLinksView('clinica'));
 
 // ---------- Enlaces (Documentos / Historia clínica) ----------
