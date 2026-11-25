@@ -28,6 +28,21 @@
   body.nomod-pendientes #tileTodos, body.nomod-docs #tileDocs, body.nomod-clinica #tileClinica,
   body.nomod-informes #exportPdfBtn, body.nomod-sync #exportIcsBtn, body.nomod-sync #gcalImportBtn{display:none !important;}
   button,input,textarea,select{font-family:inherit;}
+  #tileConfig{background:#e0e7ff !important;}
+  #configView{display:none;position:fixed;inset:0;background:var(--bg);z-index:40;overflow-y:auto;}
+  #configView.open{display:block;}
+  .cfg-top{position:sticky;top:0;background:var(--accent);color:#fff;display:flex;align-items:center;gap:10px;padding:14px 16px;}
+  .cfg-top button{border:0;background:rgba(255,255,255,.2);color:#fff;border-radius:12px;padding:6px 12px;font-size:.9rem;cursor:pointer;}
+  .cfg-top h1{margin:0;font-size:1.1rem;}
+  .cfg-body{max-width:560px;margin:0 auto;padding:14px 14px 50px;display:grid;gap:14px;}
+  .cfg-card{background:#fff;border-radius:24px;padding:16px 18px;box-shadow:0 1px 3px rgba(30,41,59,.08);}
+  .cfg-card h2{margin:0 0 4px;font-size:1rem;color:#1e40af;}
+  .cfg-card p{margin:0 0 10px;font-size:.85rem;color:var(--muted);line-height:1.4;}
+  .cfg-btn{display:block;width:100%;text-align:left;padding:12px 14px;margin-top:8px;border:1px solid var(--line);background:#f8fafc;border-radius:14px;font-size:.92rem;color:var(--ink);cursor:pointer;text-decoration:none;}
+  .cfg-btn:active{background:#e2e8f0;}
+  .cfg-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;}
+  .cfg-grid .cfg-btn{text-align:center;margin-top:0;}
+
   .home-tile{border-radius:24px !important;border:0 !important;box-shadow:0 1px 3px rgba(30,41,59,.08);}
   #tileCalendar{background:#dbeafe !important;} #tileTodos{background:#d1fae5 !important;} #tileDocs{background:#fef3c7 !important;}
   #tileClinica{background:#e0e7ff !important;} #tileNappy{background:#ffedd5 !important;} #tileDieta{background:#d1fae5 !important;}
@@ -538,10 +553,10 @@
     <button class="menu-item" id="exportPdfBtn">⬇️ Exportar PDF</button>
     <button class="menu-item" id="exportIcsBtn">📆 Vincular calendario: descargar .ics</button>
     <button class="menu-item" id="gcalImportBtn">🗓️ Abrir importación de Google Calendar</button>
-    <button class="menu-item" id="modulosBtn">🧩 Módulos</button>
-    <button class="menu-item" id="backupTodoBtn">💾 Respaldo de todos (descargar)</button>
-    <button class="menu-item" id="exportProposalBtn">💾 Exportar solo este hijo/a</button>
-    <button class="menu-item" id="importProposalBtn">📥 Importar en este hijo/a</button>
+    <button class="menu-item" id="modulosBtn" style="display:none">🧩 Módulos</button>
+    <button class="menu-item" id="backupTodoBtn" style="display:none">💾 Respaldo de todos (descargar)</button>
+    <button class="menu-item" id="exportProposalBtn" style="display:none">💾 Exportar solo este hijo/a</button>
+    <button class="menu-item" id="importProposalBtn" style="display:none">📥 Importar en este hijo/a</button>
     <button class="menu-item" id="deleteMonthBtn" style="color:#c0392b;">🗑️ Borrar mes actual</button>
     <button class="menu-item" id="deleteRangeBtn" style="color:#c0392b;">🗑️ Borrar por rango de fechas</button>
     <button class="menu-item" id="checkOverlapsBtn">⚠️ Verificar superposiciones</button>
@@ -839,7 +854,35 @@
       <button class="home-tile" id="tileDocs"><span class="ico">📄</span><span class="nm">Documentos</span><span class="sub" id="homeDocsCount">—</span></button>
       <button class="home-tile" id="tileNappy"><span class="ico">🧷</span><span class="nm">Nappy</span><span class="sub">Control de pañal</span></button>
       <button class="home-tile" id="tileClinica"><span class="ico">🩺</span><span class="nm">Historia clínica</span><span class="sub" id="homeClinicaCount">—</span></button>
+      <button class="home-tile" id="tileConfig" style="grid-column:1 / -1;"><span class="ico">⚙️</span><span class="nm">Configuración</span><span class="sub">Módulos, respaldos y apoyo</span></button>
     </div>
+  </div>
+</div>
+
+<div id="configView">
+  <div class="cfg-top"><button id="cfgBack">‹ Volver</button><h1>⚙️ Configuración</h1></div>
+  <div class="cfg-body">
+    <div class="cfg-card"><h2>🧩 Módulos</h2><p>Elegí qué partes de la app querés ver para este hijo/a. No se borra nada al apagar un módulo.</p>
+      <button class="cfg-btn" id="cfgModulos">Elegir módulos</button></div>
+    <div class="cfg-card"><h2>💾 Respaldos</h2><p id="cfgBackupInfo"></p>
+      <button class="cfg-btn" id="cfgBackupAll">Descargar respaldo de todos</button>
+      <button class="cfg-btn" id="cfgRestore">Restaurar respaldo</button>
+      <input type="file" id="cfgRestoreInput" accept="application/json,.json" style="display:none;">
+      <p style="margin-top:14px;">Solo para <b class="hijo-nombre"></b>:</p>
+      <div class="cfg-grid"><button class="cfg-btn" id="cfgExportOne">Exportar</button><button class="cfg-btn" id="cfgImportOne">Importar</button></div></div>
+    <div class="cfg-card"><h2>🎨 Personalización</h2>
+      <button class="cfg-btn" id="cfgCambiar">Cambiar o agregar hijo/a</button>
+      <button class="cfg-btn" id="cfgIntro">Mostrar/ocultar la explicación del inicio</button></div>
+    <div class="cfg-card"><h2>💙 Apoyar el proyecto</h2><p>Gurises es gratis y de código abierto. Si te sirvió, un aporte me ayuda a seguir mejorándola. Es opcional.</p>
+      <div class="cfg-grid">
+        <a class="cfg-btn" href="https://link.mercadopago.com.ar/abelg88" target="_blank" rel="noopener">Mercado Pago</a>
+        <a class="cfg-btn" href="https://cafecito.app/abelg88" target="_blank" rel="noopener">Cafecito</a>
+        <a class="cfg-btn" href="https://paypal.me/AbelG88" target="_blank" rel="noopener">PayPal</a>
+        <a class="cfg-btn" href="https://buymeacoffee.com/abelg88" target="_blank" rel="noopener">Buy Me a Coffee</a>
+      </div></div>
+    <div class="cfg-card"><h2>ℹ️ Acerca de</h2><p>Hecha por Abel con vibe coding, en constante evolución. Código abierto (MIT). Hacé respaldos seguido.</p>
+      <a class="cfg-btn" href="https://github.com/AbelG88/gurises" target="_blank" rel="noopener">Ver el código</a>
+      <a class="cfg-btn" href="https://orbita-tea.pages.dev" target="_blank" rel="noopener">Más apps en Órbita TEA</a></div>
   </div>
 </div>
 
@@ -2879,6 +2922,30 @@ function iniciarApp(){
   refreshAll();
   avisarBackupSiHaceFalta();
 }
+
+// ---------- Configuración ----------
+function abrirConfig(){
+  const u = STORE.meta.ultimoBackup;
+  document.getElementById('cfgBackupInfo').textContent = 'Tus datos están solo en este celular. ' + (u ? 'Último respaldo: ' + new Date(u).toLocaleDateString('es-AR') + '.' : 'Todavía no hiciste ningún respaldo.');
+  document.getElementById('configView').classList.add('open');
+}
+document.getElementById('tileConfig').addEventListener('click', abrirConfig);
+document.getElementById('cfgBack').addEventListener('click', ()=>document.getElementById('configView').classList.remove('open'));
+document.getElementById('cfgModulos').addEventListener('click', ()=>mostrarModulos(hijoActual(), false));
+document.getElementById('cfgBackupAll').addEventListener('click', ()=>{ exportarTodo(); abrirConfig(); });
+document.getElementById('cfgRestore').addEventListener('click', ()=>document.getElementById('cfgRestoreInput').click());
+document.getElementById('cfgRestoreInput').addEventListener('change', (e)=>{
+  if(e.target.files[0]) restaurarDesdeArchivo(e.target.files[0], ()=>{ window.location.href = window.location.pathname; });
+  e.target.value = '';
+});
+document.getElementById('cfgExportOne').addEventListener('click', ()=>document.getElementById('exportProposalBtn').click());
+document.getElementById('cfgImportOne').addEventListener('click', ()=>{ document.getElementById('configView').classList.remove('open'); document.getElementById('importProposalBtn').click(); });
+document.getElementById('cfgCambiar').addEventListener('click', ()=>{ window.location.href = window.location.pathname + '?sel=1'; });
+document.getElementById('cfgIntro').addEventListener('click', ()=>{
+  STORE.meta.introOculta = !STORE.meta.introOculta; guardarStore();
+  const i = document.getElementById('homeIntro'); if(i) i.style.display = STORE.meta.introOculta ? 'none' : '';
+  document.getElementById('configView').classList.remove('open');
+});
 
 // ---------- Pendientes (to-do) ----------
 let editingTodoId = null;
