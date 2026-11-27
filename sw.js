@@ -1,7 +1,9 @@
-const CACHE_NAME = 'gurises-v20';
+const CACHE_NAME = 'gurises-v21';
 const ASSETS = [
   './index.html',
   './manifest.json',
+  './vendor/jspdf.umd.min.js',
+  './vendor/jspdf.plugin.autotable.min.js',
   './icons/icon-192.png?v=6',
   './icons/icon-512.png?v=6'
 ];
@@ -24,7 +26,7 @@ self.addEventListener('activate', (event) => {
 
 // Estrategia: red primero; si hay red se guarda copia (solo del sitio y de las librerías por CDN),
 // y si no hay red se responde con la copia guardada.
-const CACHEABLE_HOSTS = ['www.gstatic.com', 'cdnjs.cloudflare.com', 'fonts.googleapis.com', 'fonts.gstatic.com'];
+const CACHEABLE_HOSTS = ['fonts.googleapis.com', 'fonts.gstatic.com'];
 self.addEventListener('fetch', (event) => {
   const req = event.request;
   if (req.method !== 'GET') return;

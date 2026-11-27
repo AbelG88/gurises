@@ -14,12 +14,13 @@
 <meta name="apple-mobile-web-app-title" content="Gurises">
 
 <link rel="manifest" href="manifest.json">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: blob:; connect-src 'self' data: blob:; object-src 'none'; base-uri 'none'; form-action 'none'">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@400;500;600;700&display=swap" rel="stylesheet">
 
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
+<script src="vendor/jspdf.umd.min.js"></script>
+<script src="vendor/jspdf.plugin.autotable.min.js"></script>
 
 <style>
   /* Módulos desactivados */
@@ -2998,7 +2999,7 @@ const LG = {
  '<h3>3. Documentos y notas</h3><p>La app guarda solo <b>enlaces</b> a tus documentos, no los archivos. Te recomendamos no escribir datos clínicos, DNI ni otros datos sensibles en los títulos o en las notas.</p>'+
  '<h3>4. Qué no hacemos</h3><p>No usamos publicidad, analítica ni rastreo, no vendemos ni cedemos datos y no pedimos registro.</p>'+
  '<h3>5. Respaldos, PDF y calendario</h3><p>Los respaldos, los PDF y los .ics son archivos sin cifrar que descargás vos y que el desarrollador no recibe. Si importás un .ics en Google Calendar u otro servicio, esa información pasa a ese servicio y a su política de privacidad.</p>'+
- '<h3>6. Alojamiento y terceros</h3><p>La app se descarga desde GitHub Pages, que puede registrar datos técnicos de la visita (como la dirección IP). Para mostrarse, carga la tipografía desde Google Fonts y la librería de PDF desde cdnjs (Cloudflare), que también pueden registrar datos técnicos de la visita. Los enlaces de aportes y de otras apps llevan a sitios de terceros con sus propias políticas.</p>'+
+ '<h3>6. Alojamiento y terceros</h3><p>La app se descarga desde GitHub Pages, que puede registrar datos técnicos de la visita (como la dirección IP). Para mostrarse, carga la tipografía desde Google Fonts, que también puede registrar datos técnicos de la visita. Los enlaces de aportes y de otras apps llevan a sitios de terceros con sus propias políticas.</p>'+
  '<h3>7. Tus derechos</h3><p>Como los datos están solo en tu dispositivo, los controlás vos: podés verlos, corregirlos y borrarlos desde la app (eliminar un hijo/a) o borrando los datos del sitio en tu navegador. La Ley 25.326 de Protección de Datos Personales te reconoce derechos de acceso, rectificación y supresión; su órgano de control es la Agencia de Acceso a la Información Pública.</p>'+
  '<h3>8. Menores</h3><p>Gurises es para mayores de 18 años. Quien cargue datos de menores a su cargo lo hace como adulto responsable.</p>'+
  '<h3>9. Cambios</h3><p>Si esta política cambia, se actualiza la fecha (<b>'+LG_VERSION+'</b>) y, si corresponde, te avisamos en la app.</p>']
