@@ -23,4 +23,4 @@ Calendario y bloques de cuidado (con horas por cuidador), plantillas, exportar P
 
 ## Licencia
 
-MIT
+[PolyForm Noncommercial 1.0.0](LICENSE): gratis para usar, copiar y modificar sin fines comerciales.

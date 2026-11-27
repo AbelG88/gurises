@@ -1,4 +1,4 @@
-const CACHE_NAME = 'gurises-v19';
+const CACHE_NAME = 'gurises-v20';
 const ASSETS = [
   './index.html',
   './manifest.json',
