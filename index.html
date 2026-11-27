@@ -915,7 +915,8 @@
       <button class="cfg-btn" id="cfgTerms">Términos y condiciones</button>
       <button class="cfg-btn" id="cfgPriv">Política de privacidad</button></div>
     <div class="cfg-card"><h2>💾 Respaldos</h2><p id="cfgBackupInfo"></p>
-      <button class="cfg-btn" id="cfgBackupAll">Descargar respaldo de todos</button>
+      <button class="cfg-btn" id="cfgBackupAll">Hacer respaldo de todos (enviar / guardar)</button>
+      <p class="cfg-note" style="font-size:.85rem;color:#64748b;margin:6px 2px">📱 <b>¿Cambiás de celular?</b> Hacé un respaldo antes, guardalo en Drive o mandátelo por WhatsApp, y en el nuevo usá «Restaurar».</p>
       <button class="cfg-btn" id="cfgRestore">Restaurar respaldo</button>
       <input type="file" id="cfgRestoreInput" accept="application/json,.json" style="display:none;">
       <p style="margin-top:14px;">Solo para <b class="hijo-nombre"></b>:</p>
@@ -2793,9 +2794,37 @@ function descargarJson(obj, nombre){
   a.href = url; a.download = nombre; a.click();
   URL.revokeObjectURL(url);
 }
-function exportarTodo(){
-  descargarJson({ tipo:'gurises_respaldo_v3', generado:new Date().toISOString(), hijos:STORE.hijos },
-    `gurises_respaldo_${fmtDateStr(new Date())}.json`);
+
+// ---------- Entrega de respaldos: compartir (si se puede) + aviso de dónde guardarlo ----------
+function avisoRespaldo(compartido){
+  const o = document.createElement('div');
+  o.style.cssText = 'position:fixed;inset:0;z-index:200;background:rgba(30,41,59,.55);display:flex;align-items:center;justify-content:center;padding:18px;';
+  o.innerHTML = '<div style="background:#fff;border-radius:18px;padding:20px;max-width:420px;width:100%;max-height:90vh;overflow:auto;font-size:.95rem;line-height:1.45;color:#1e293b">' +
+    '<h2 style="margin:0 0 8px;font-size:1.15rem">' + (compartido ? '📤 Respaldo listo' : '📥 Respaldo descargado') + '</h2>' +
+    (compartido ? '<p>Elegí dónde guardarlo: <b>Drive, tu mail o WhatsApp (mandátelo a vos mismo)</b>.</p>'
+                : '<p>El archivo quedó en la carpeta <b>Descargas</b> de este celular. <b>Eso no alcanza</b>: si perdés o cambiás el celular, se pierde también.</p><p>Pasalo a <b>Drive</b>, mandátelo por <b>mail</b> o por <b>WhatsApp a vos mismo</b>.</p>') +
+    '<p style="background:#fef3c7;border-radius:12px;padding:10px"><b>Si cambiás de celular:</b> hacé un respaldo antes, abrí la app en el celular nuevo y usá <i>Restaurar respaldo</i> con ese archivo. Sin el archivo, los datos no se pueden pasar.</p>' +
+    '<button id="avOk" style="width:100%;padding:12px;border:0;border-radius:12px;background:#3b82f6;color:#fff;font-weight:700;font-size:1rem;cursor:pointer">Entendido</button></div>';
+  document.body.appendChild(o);
+  o.querySelector('#avOk').addEventListener('click', ()=>o.remove());
+}
+async function entregarRespaldo(nombre, obj){
+  const txt = JSON.stringify(obj, null, 2);
+  try{
+    const f = new File([txt], nombre, {type:'application/json'});
+    if(navigator.canShare && navigator.canShare({files:[f]})){
+      await navigator.share({files:[f], title:nombre});
+      avisoRespaldo(true); return true;
+    }
+  }catch(e){ if(e && e.name === 'AbortError') return false; }
+  const url = URL.createObjectURL(new Blob([txt], {type:'application/json'}));
+  const a = document.createElement('a'); a.href = url; a.download = nombre; a.click();
+  setTimeout(()=>URL.revokeObjectURL(url), 1000);
+  avisoRespaldo(false); return true;
+}
+async function exportarTodo(){
+  const ok = await entregarRespaldo(`gurises_respaldo_${fmtDateStr(new Date())}.json`, { tipo:'gurises_respaldo_v3', generado:new Date().toISOString(), hijos:STORE.hijos });
+  if(!ok) return;
   STORE.meta.ultimoBackup = Date.now();
   guardarStore();
   const b = document.getElementById('avisoBackup'); if(b) b.remove();
@@ -2944,7 +2973,7 @@ function avisarBackupSiHaceFalta(){
   const d = document.createElement('div');
   d.id = 'avisoBackup';
   d.style.cssText = 'position:fixed;left:10px;right:10px;bottom:10px;z-index:90;background:#fef3c7;border:1px solid #fde68a;border-radius:12px;padding:12px;font-size:.85rem;box-shadow:0 2px 8px rgba(0,0,0,.15);display:flex;gap:10px;align-items:center;';
-  d.innerHTML = '<span style="flex:1;">Tus datos están solo en este celular. Descargá un respaldo.</span><button id="avisoBackupOk" style="padding:8px 12px;border:0;border-radius:8px;background:#3b82f6;color:#fff;font-weight:600;">Respaldar</button><button id="avisoBackupX" aria-label="Cerrar" style="border:0;background:none;font-size:1.1rem;">✕</button>';
+  d.innerHTML = '<span style="flex:1;">Tus datos están solo en este celular. Hacé un respaldo y guardalo fuera del celular (Drive, mail o WhatsApp).</span><button id="avisoBackupOk" style="padding:8px 12px;border:0;border-radius:8px;background:#3b82f6;color:#fff;font-weight:600;">Respaldar</button><button id="avisoBackupX" aria-label="Cerrar" style="border:0;background:none;font-size:1.1rem;">✕</button>';
   document.body.appendChild(d);
   document.getElementById('avisoBackupOk').addEventListener('click', exportarTodo);
   document.getElementById('avisoBackupX').addEventListener('click', ()=>{ d.remove(); STORE.meta.ultimoBackup = Date.now() - 7*864e5; guardarStore(); });
